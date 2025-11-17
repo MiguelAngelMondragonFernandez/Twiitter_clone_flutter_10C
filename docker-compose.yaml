@@ -1,0 +1,17 @@
+services:
+  database:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=twitter_clone
+      - MYSQL_USER=reona
+      - MYSQL_PASSWORD=reopeko98
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - demo-networks
+
+networks:
+    demo-networks:
+      external: true

@@ -19,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chirps")
+@CrossOrigin(origins = "*")
 public class ChirpController {
     
     @Autowired

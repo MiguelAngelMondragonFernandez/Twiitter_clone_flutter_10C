@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChirpDTO {
-    private String id;
+    private Long id;
     private String content;
     private AuthorDTO author;
     private LocalDateTime createdAt;
@@ -19,5 +19,5 @@ public class ChirpDTO {
     private int repostsCount;
     private boolean isLiked;
     private boolean isReposted;
-    private String replyToId;
+    private Long replyToId;
 }

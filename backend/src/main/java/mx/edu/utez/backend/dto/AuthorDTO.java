@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthorDTO {
-    private String id;
+    private Long id;
     private String username;
     private String displayName;
     private String profileImageUrl;

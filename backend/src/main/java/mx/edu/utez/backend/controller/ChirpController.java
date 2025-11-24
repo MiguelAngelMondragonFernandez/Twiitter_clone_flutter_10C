@@ -45,7 +45,7 @@ public class ChirpController {
     
     @DeleteMapping("/{chirpId}")
     public ResponseEntity<Map<String, String>> deleteChirp(
-            @PathVariable String chirpId,
+            @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.deleteChirp(chirpId, user);
         
@@ -56,7 +56,7 @@ public class ChirpController {
     
     @PostMapping("/like/{chirpId}")
     public ResponseEntity<Map<String, Object>> likeChirp(
-            @PathVariable String chirpId,
+            @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.likeChirp(chirpId, user);
         
@@ -68,7 +68,7 @@ public class ChirpController {
     
     @DeleteMapping("/unlike/{chirpId}")
     public ResponseEntity<Map<String, Object>> unlikeChirp(
-            @PathVariable String chirpId,
+            @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.unlikeChirp(chirpId, user);
         
@@ -80,7 +80,7 @@ public class ChirpController {
     
     @PostMapping("/repost/{chirpId}")
     public ResponseEntity<Map<String, Object>> repostChirp(
-            @PathVariable String chirpId,
+            @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.repostChirp(chirpId, user);
         

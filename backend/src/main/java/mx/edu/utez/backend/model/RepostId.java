@@ -10,6 +10,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RepostId implements Serializable {
-    private String user;
-    private String chirp;
+    private Long user;
+    private Long chirp;
 }

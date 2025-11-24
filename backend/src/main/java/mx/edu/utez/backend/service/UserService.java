@@ -50,7 +50,7 @@ public class UserService {
     }
     
     @Transactional(readOnly = true)
-    public UserDTO getUserById(String userId, User currentUser) {
+    public UserDTO getUserById(Long userId, User currentUser) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         
@@ -62,7 +62,7 @@ public class UserService {
     }
     
     @Transactional(readOnly = true)
-    public List<ChirpDTO> getUserChirps(String userId, User currentUser, Pageable pageable) {
+    public List<ChirpDTO> getUserChirps(Long userId, User currentUser, Pageable pageable) {
         // Verificar que el usuario existe
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("Usuario no encontrado");
@@ -80,7 +80,7 @@ public class UserService {
     }
     
     @Transactional
-    public void followUser(String userIdToFollow, User currentUser) {
+    public void followUser(Long userIdToFollow, User currentUser) {
         // No puede seguirse a sí mismo
         if (currentUser.getId().equals(userIdToFollow)) {
             throw new BadRequestException("No puedes seguirte a ti mismo");
@@ -116,7 +116,7 @@ public class UserService {
     }
     
     @Transactional
-    public void unfollowUser(String userIdToUnfollow, User currentUser) {
+    public void unfollowUser(Long userIdToUnfollow, User currentUser) {
         // No puede dejar de seguirse a sí mismo
         if (currentUser.getId().equals(userIdToUnfollow)) {
             throw new BadRequestException("No puedes dejar de seguirte a ti mismo");

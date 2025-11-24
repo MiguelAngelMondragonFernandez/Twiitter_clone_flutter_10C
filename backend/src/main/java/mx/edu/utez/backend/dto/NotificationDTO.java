@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationDTO {
-    private String id;
+    private Long id;
     private NotificationType type;
     private AuthorDTO actor;
     private ChirpDTO chirp;

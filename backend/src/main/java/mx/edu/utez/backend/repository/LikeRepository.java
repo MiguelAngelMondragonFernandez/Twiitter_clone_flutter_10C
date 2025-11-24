@@ -13,9 +13,9 @@ import java.util.Optional;
 public interface LikeRepository extends JpaRepository<Like, LikeId> {
     
     @Query("SELECT l FROM Like l WHERE l.user.id = :userId AND l.chirp.id = :chirpId")
-    Optional<Like> findByUserIdAndChirpId(@Param("userId") String userId, @Param("chirpId") String chirpId);
+    Optional<Like> findByUserIdAndChirpId(@Param("userId") Long userId, @Param("chirpId") Long chirpId);
     
-    boolean existsByUserIdAndChirpId(String userId, String chirpId);
+    boolean existsByUserIdAndChirpId(Long userId, Long chirpId);
     
-    long countByChirpId(String chirpId);
+    long countByChirpId(Long chirpId);
 }

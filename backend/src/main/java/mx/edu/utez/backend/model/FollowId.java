@@ -10,6 +10,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FollowId implements Serializable {
-    private String follower;
-    private String following;
+    private Long follower;
+    private Long following;
 }

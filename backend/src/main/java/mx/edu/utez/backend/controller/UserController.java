@@ -30,7 +30,7 @@ public class UserController {
     
     @GetMapping("/{userId}")
     public ResponseEntity<UserDTO> getUserById(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @AuthenticationPrincipal User currentUser) {
         UserDTO userDTO = userService.getUserById(userId, currentUser);
         return ResponseEntity.ok(userDTO);
@@ -38,7 +38,7 @@ public class UserController {
     
     @GetMapping("/{userId}/chirps")
     public ResponseEntity<List<ChirpDTO>> getUserChirps(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal User currentUser) {
@@ -49,7 +49,7 @@ public class UserController {
     
     @PostMapping("/follow/{userId}")
     public ResponseEntity<Map<String, Object>> followUser(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @AuthenticationPrincipal User currentUser) {
         userService.followUser(userId, currentUser);
         
@@ -61,7 +61,7 @@ public class UserController {
     
     @DeleteMapping("/unfollow/{userId}")
     public ResponseEntity<Map<String, Object>> unfollowUser(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @AuthenticationPrincipal User currentUser) {
         userService.unfollowUser(userId, currentUser);
         

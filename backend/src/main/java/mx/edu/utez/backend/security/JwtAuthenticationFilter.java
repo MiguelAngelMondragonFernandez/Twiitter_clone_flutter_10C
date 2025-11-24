@@ -18,42 +18,51 @@ import java.util.ArrayList;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    
+
     @Autowired
     private JwtUtil jwtUtil;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
+
         final String authorizationHeader = request.getHeader("Authorization");
-        
-        String userId = null;
+
+        String userIdStr = null;
         String jwt = null;
-        
+
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
             try {
-                userId = jwtUtil.extractUserId(jwt);
+                userIdStr = jwtUtil.extractUserId(jwt);
             } catch (Exception e) {
                 logger.error("Error extracting user ID from token", e);
             }
         }
-        
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+        if (userIdStr != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            Long userId = null;
+            try {
+                userId = Long.parseLong(userIdStr);
+            } catch (NumberFormatException e) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             User user = userRepository.findById(userId).orElse(null);
-            
-            if (user != null && jwtUtil.validateToken(jwt, userId)) {
-                UsernamePasswordAuthenticationToken authenticationToken = 
+
+            if (user != null && jwtUtil.validateToken(jwt, userIdStr)) {
+                UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
-        
+
         filterChain.doFilter(request, response);
     }
 }

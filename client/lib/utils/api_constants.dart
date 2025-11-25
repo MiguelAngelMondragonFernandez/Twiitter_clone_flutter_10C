@@ -1,6 +1,23 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
   // Cambia esta URL según tu backend
-  static const String baseUrl = 'http://localhost:8081/api';
+  // Para Android Emulator usa 10.0.2.2, para iOS/Web/Desktop usa localhost
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8081/api';
+    }
+    try {
+      if (Platform.isAndroid) {
+        return 'http://10.0.2.2:8081/api';
+      }
+    } catch (e) {
+      // Platform check failed (e.g. on web if kIsWeb check was missed or other issues)
+      return 'http://localhost:8081/api';
+    }
+    return 'http://localhost:8081/api';
+  }
 
   // Auth endpoints
   static const String login = '/auth/login';

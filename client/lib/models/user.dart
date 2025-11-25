@@ -8,6 +8,7 @@ class User {
   final int followersCount;
   final int followingCount;
   final DateTime createdAt;
+  final bool isFollowing;
 
   User({
     required this.id,
@@ -19,11 +20,12 @@ class User {
     this.followersCount = 0,
     this.followingCount = 0,
     required this.createdAt,
+    this.isFollowing = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       displayName: json['displayName'],
@@ -34,12 +36,13 @@ class User {
       createdAt: DateTime.parse(
         json['createdAt'] ?? DateTime.now().toIso8601String(),
       ),
+      isFollowing: json['isFollowing'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'id': id, // Backend expects Long, but we send String. Usually Jackson handles "123" -> 123.
       'username': username,
       'email': email,
       'displayName': displayName,
@@ -48,6 +51,7 @@ class User {
       'followersCount': followersCount,
       'followingCount': followingCount,
       'createdAt': createdAt.toIso8601String(),
+      'isFollowing': isFollowing,
     };
   }
 
@@ -61,6 +65,7 @@ class User {
     int? followersCount,
     int? followingCount,
     DateTime? createdAt,
+    bool? isFollowing,
   }) {
     return User(
       id: id ?? this.id,
@@ -72,6 +77,7 @@ class User {
       followersCount: followersCount ?? this.followersCount,
       followingCount: followingCount ?? this.followingCount,
       createdAt: createdAt ?? this.createdAt,
+      isFollowing: isFollowing ?? this.isFollowing,
     );
   }
 }

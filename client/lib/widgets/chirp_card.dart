@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/chirp.dart';
 import '../viewmodels/chirp_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../views/create_chirp_view.dart';
 
 class ChirpCard extends StatelessWidget {
   final Chirp chirp;
@@ -56,7 +57,7 @@ class ChirpCard extends StatelessWidget {
                     radius: 20,
                     backgroundColor: Theme.of(
                       context,
-                    ).primaryColor.withOpacity(0.1),
+                    ).primaryColor.withValues(alpha: 0.1),
                     backgroundImage: chirp.author.profileImageUrl != null
                         ? NetworkImage(chirp.author.profileImageUrl!)
                         : null,
@@ -118,9 +119,7 @@ class ChirpCard extends StatelessWidget {
                             ],
                           ),
                           onTap: () {
-                            Future.delayed(Duration.zero, () {
-                              _showDeleteDialog(context, chirpViewModel);
-                            });
+                            _showDeleteDialog(context, chirpViewModel);
                           },
                         ),
                       ],
@@ -141,7 +140,14 @@ class ChirpCard extends StatelessWidget {
                     icon: Icons.chat_bubble_outline,
                     count: chirp.repliesCount,
                     onTap: () {
-                      // Navigate to replies
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateChirpView(
+                            replyToId: chirp.id,
+                          ),
+                        ),
+                      );
                     },
                   ),
                   _ActionButton(
@@ -150,7 +156,7 @@ class ChirpCard extends StatelessWidget {
                     isActive: chirp.isReposted,
                     activeColor: Colors.green,
                     onTap: () {
-                      // Handle repost
+                      chirpViewModel.repostChirp(chirp.id);
                     },
                   ),
                   _ActionButton(
@@ -168,7 +174,9 @@ class ChirpCard extends StatelessWidget {
                     icon: Icons.share_outlined,
                     count: 0,
                     onTap: () {
-                      // Handle share
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Compartir no implementado')),
+                      );
                     },
                   ),
                 ],

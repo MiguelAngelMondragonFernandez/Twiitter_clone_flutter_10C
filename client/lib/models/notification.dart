@@ -41,7 +41,7 @@ class Notification {
     }
 
     return Notification(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       type: parseType(json['type'] ?? 'like'),
       actor: User.fromJson(json['actor'] ?? {}),
       chirp: json['chirp'] != null ? Chirp.fromJson(json['chirp']) : null,

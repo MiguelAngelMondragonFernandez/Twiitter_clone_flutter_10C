@@ -124,9 +124,10 @@ class _HomeViewState extends State<HomeView> {
                 context,
                 listen: false,
               );
+              final navigator = Navigator.of(context);
               await authViewModel.logout();
               if (mounted) {
-                Navigator.of(context).pushReplacement(
+                navigator.pushReplacement(
                   MaterialPageRoute(builder: (_) => const LoginView()),
                 );
               }

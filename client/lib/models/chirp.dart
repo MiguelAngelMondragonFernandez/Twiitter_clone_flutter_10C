@@ -27,7 +27,7 @@ class Chirp {
 
   factory Chirp.fromJson(Map<String, dynamic> json) {
     return Chirp(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       content: json['content'] ?? '',
       author: User.fromJson(json['author'] ?? {}),
       createdAt: DateTime.parse(
@@ -38,7 +38,7 @@ class Chirp {
       repostsCount: json['repostsCount'] ?? 0,
       isLiked: json['isLiked'] ?? false,
       isReposted: json['isReposted'] ?? false,
-      replyToId: json['replyToId'],
+      replyToId: json['replyToId']?.toString(),
     );
   }
 

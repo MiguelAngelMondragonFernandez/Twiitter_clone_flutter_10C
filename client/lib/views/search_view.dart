@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/search_viewmodel.dart';
 import '../widgets/chirp_card.dart';
+import '../models/user.dart'; // Added import for User model
 
 class SearchView extends StatefulWidget {
   const SearchView({super.key});
@@ -261,7 +262,7 @@ class _SearchViewState extends State<SearchView>
 }
 
 class UserListItem extends StatelessWidget {
-  final user;
+  final User user;
 
   const UserListItem({super.key, required this.user});
 
@@ -269,7 +270,7 @@ class UserListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         backgroundImage: user.profileImageUrl != null
             ? NetworkImage(user.profileImageUrl!)
             : null,

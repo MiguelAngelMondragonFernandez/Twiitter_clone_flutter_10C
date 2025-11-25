@@ -9,14 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface NotificationRepository extends JpaRepository<Notification, String> {
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
     
-    Page<Notification> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
+    Page<Notification> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
     
-    long countByUserIdAndIsReadFalse(String userId);
+    long countByUserIdAndIsReadFalse(Long userId);
     
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.user.id = :userId")
-    int markAllAsRead(@Param("userId") String userId);
+    int markAllAsRead(@Param("userId") Long userId);
 }
+

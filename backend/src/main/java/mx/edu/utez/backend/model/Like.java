@@ -13,20 +13,23 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@IdClass(LikeId.class)
 public class Like {
-    
-    @Id
+
+    @EmbeddedId
+    private LikeId id;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @MapsId("userId")
+    @JoinColumn(name = "user_id")
     private User user;
-    
-    @Id
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chirp_id", nullable = false)
+    @MapsId("chirpId")
+    @JoinColumn(name = "chirp_id")
     private Chirp chirp;
-    
+
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }
+
+

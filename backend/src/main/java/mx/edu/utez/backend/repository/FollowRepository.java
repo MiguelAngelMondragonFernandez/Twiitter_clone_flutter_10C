@@ -1,4 +1,4 @@
-package mx.edu.utez.backend.repository;
+ package mx.edu.utez.backend.repository;
 
 import mx.edu.utez.backend.model.Follow;
 import mx.edu.utez.backend.model.FollowId;
@@ -14,10 +14,10 @@ import java.util.Optional;
 public interface FollowRepository extends JpaRepository<Follow, FollowId> {
     
     @Query("SELECT f FROM Follow f WHERE f.follower.id = :followerId AND f.following.id = :followingId")
-    Optional<Follow> findByFollowerIdAndFollowingId(@Param("followerId") String followerId, @Param("followingId") String followingId);
+    Optional<Follow> findByFollowerIdAndFollowingId(@Param("followerId") Long followerId, @Param("followingId") Long followingId);
     
     @Query("SELECT f.following.id FROM Follow f WHERE f.follower.id = :userId")
-    List<String> findFollowingIdsByUserId(@Param("userId") String userId);
+    List<Long> findFollowingIdsByUserId(@Param("userId") Long userId);
     
-    boolean existsByFollowerIdAndFollowingId(String followerId, String followingId);
+    boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
 }

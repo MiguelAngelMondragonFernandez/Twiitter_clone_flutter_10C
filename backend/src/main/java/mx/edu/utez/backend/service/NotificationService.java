@@ -40,18 +40,18 @@ public class NotificationService {
     }
     
     @Transactional
-    public void markAsRead(String notificationId, User currentUser) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada"));
-        
-        // Verificar que la notificación pertenece al usuario actual
-        if (!notification.getUser().getId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("Notificación no encontrada");
-        }
-        
-        notification.setRead(true);
-        notificationRepository.save(notification);
+public void markAsRead(Long notificationId, User currentUser) {
+    Notification notification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada"));
+
+    if (!notification.getUser().getId().equals(currentUser.getId())) {
+        throw new ResourceNotFoundException("Notificación no encontrada");
     }
+
+    notification.setRead(true);
+    notificationRepository.save(notification);
+}
+
     
     @Transactional
     public int markAllAsRead(User currentUser) {
@@ -59,15 +59,15 @@ public class NotificationService {
     }
     
     @Transactional
-    public void deleteNotification(String notificationId, User currentUser) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada"));
-        
-        // Verificar que la notificación pertenece al usuario actual
-        if (!notification.getUser().getId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("Notificación no encontrada");
-        }
-        
-        notificationRepository.delete(notification);
+public void deleteNotification(Long notificationId, User currentUser) {
+    Notification notification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada"));
+
+    if (!notification.getUser().getId().equals(currentUser.getId())) {
+        throw new ResourceNotFoundException("Notificación no encontrada");
     }
+
+    notificationRepository.delete(notification);
+}
+
 }

@@ -13,9 +13,9 @@ import java.util.Optional;
 public interface RepostRepository extends JpaRepository<Repost, RepostId> {
     
     @Query("SELECT r FROM Repost r WHERE r.user.id = :userId AND r.chirp.id = :chirpId")
-    Optional<Repost> findByUserIdAndChirpId(@Param("userId") String userId, @Param("chirpId") String chirpId);
+    Optional<Repost> findByUserIdAndChirpId(@Param("userId") Long userId, @Param("chirpId") Long chirpId);
+
+    boolean existsByUserIdAndChirpId(Long userId, Long chirpId);
     
-    boolean existsByUserIdAndChirpId(String userId, String chirpId);
-    
-    long countByChirpId(String chirpId);
+    long countByChirpId(Long chirpId);
 }

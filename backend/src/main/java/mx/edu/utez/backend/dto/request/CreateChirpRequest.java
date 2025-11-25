@@ -15,5 +15,5 @@ public class CreateChirpRequest {
     @Size(min = 1, max = 280, message = "El chirp debe tener entre 1 y 280 caracteres")
     private String content;
     
-    private String replyToId;
+    private Long replyToId;
 }

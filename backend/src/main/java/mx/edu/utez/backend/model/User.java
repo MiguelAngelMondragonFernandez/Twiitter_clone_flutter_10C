@@ -7,8 +7,14 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,14 +22,17 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"chirps", "followers", "following", "likes", "reposts", "notifications"})
 public class User {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+
     
     @Column(unique = true, nullable = false, length = 30)
     @NotBlank(message = "El nombre de usuario es requerido")
@@ -62,20 +71,27 @@ public class User {
     private LocalDateTime createdAt;
     
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Chirp> chirps = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> following = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> followers = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Like> likes = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Repost> reposts = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Notification> notifications = new ArrayList<>();
+@JsonIgnore
+private List<Chirp> chirps = new ArrayList<>();
+
+@OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<Follow> following = new ArrayList<>();
+
+@OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<Follow> followers = new ArrayList<>();
+
+@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<Like> likes = new ArrayList<>();
+
+@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<Repost> reposts = new ArrayList<>();
+
+@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<Notification> notifications = new ArrayList<>();
+
 }

@@ -11,16 +11,21 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ChirpRepository extends JpaRepository<Chirp, String> {
-    
-    Page<Chirp> findByAuthorIdOrderByCreatedAtDesc(String authorId, Pageable pageable);
-    
-    @Query("SELECT c FROM Chirp c WHERE c.author.id IN :authorIds ORDER BY c.createdAt DESC")
-    Page<Chirp> findFeedByAuthorIds(@Param("authorIds") List<String> authorIds, Pageable pageable);
-    
-    @Query("SELECT c FROM Chirp c WHERE LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%')) ORDER BY c.createdAt DESC")
+public interface ChirpRepository extends JpaRepository<Chirp, Long> {
+
+    @Query("SELECT c FROM Chirp c WHERE LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<Chirp> searchChirps(@Param("query") String query);
-    
-    @Query("SELECT c FROM Chirp c WHERE LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%')) ORDER BY c.createdAt DESC")
+
+    @Query("SELECT c FROM Chirp c WHERE c.author.id = :authorId ORDER BY c.createdAt DESC")
+Page<Chirp> findByAuthorIdOrderByCreatedAtDesc(@Param("authorId") Long authorId, Pageable pageable);
+
+    @Query("SELECT c FROM Chirp c WHERE LOWER(c.content) LIKE LOWER(CONCAT('%', :query, '%'))")
     Page<Chirp> searchChirpsPage(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT c FROM Chirp c WHERE c.author.id IN :authorIds ORDER BY c.createdAt DESC")
+    Page<Chirp> findFeedByAuthorIds(@Param("authorIds") List<Long> authorIds, Pageable pageable);
+
+    
+
 }
+

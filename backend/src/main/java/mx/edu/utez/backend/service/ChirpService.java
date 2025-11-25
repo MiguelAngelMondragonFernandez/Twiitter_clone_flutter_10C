@@ -45,7 +45,7 @@ public class ChirpService {
     @Transactional(readOnly = true)
     public List<ChirpDTO> getFeed(User currentUser, Pageable pageable) {
         // Obtener IDs de usuarios que sigue
-        List<String> followingIds = followRepository.findFollowingIdsByUserId(currentUser.getId());
+        List<Long> followingIds = followRepository.findFollowingIdsByUserId(currentUser.getId());
         
         // Agregar el propio ID del usuario
         followingIds.add(currentUser.getId());
@@ -70,7 +70,7 @@ public class ChirpService {
         chirp.setAuthor(currentUser);
         
         // Si es una respuesta, verificar que el chirp padre existe
-        if (request.getReplyToId() != null && !request.getReplyToId().isEmpty()) {
+        if (request.getReplyToId() != null) {
             Chirp replyTo = chirpRepository.findById(request.getReplyToId())
                     .orElseThrow(() -> new ResourceNotFoundException("El chirp al que intentas responder no existe"));
             
@@ -98,7 +98,7 @@ public class ChirpService {
     }
     
     @Transactional
-    public void deleteChirp(String chirpId, User currentUser) {
+    public void deleteChirp(Long chirpId, User currentUser) {
         Chirp chirp = chirpRepository.findById(chirpId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chirp no encontrado"));
         
@@ -111,7 +111,7 @@ public class ChirpService {
     }
     
     @Transactional
-    public void likeChirp(String chirpId, User currentUser) {
+    public void likeChirp(Long chirpId, User currentUser) {
         Chirp chirp = chirpRepository.findById(chirpId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chirp no encontrado"));
         
@@ -142,7 +142,7 @@ public class ChirpService {
     }
     
     @Transactional
-    public void unlikeChirp(String chirpId, User currentUser) {
+    public void unlikeChirp(Long chirpId, User currentUser) {
         Chirp chirp = chirpRepository.findById(chirpId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chirp no encontrado"));
         
@@ -158,7 +158,7 @@ public class ChirpService {
     }
     
     @Transactional
-    public void repostChirp(String chirpId, User currentUser) {
+    public void repostChirp(Long chirpId, User currentUser) {
         Chirp chirp = chirpRepository.findById(chirpId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chirp no encontrado"));
         

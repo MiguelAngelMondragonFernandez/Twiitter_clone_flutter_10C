@@ -14,10 +14,12 @@ class AuthViewModel extends ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _currentUser != null;
 
-  // Check if user is already logged in
+  // --- FIX: NO HACER notifyListeners() DURANTE EL BUILD ---
   Future<void> checkAuthStatus() async {
     _isLoading = true;
-    notifyListeners();
+
+    // 🔥 Disparamos el notify después del build
+    Future.microtask(() => notifyListeners());
 
     try {
       final isLoggedIn = await _authService.isLoggedIn();
@@ -29,10 +31,13 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _isLoading = false;
-    notifyListeners();
+
+    // 🔥 Nuevo notify seguro
+    Future.microtask(() => notifyListeners());
   }
 
-  // Login
+  // ---------------------------------------------------------
+
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
@@ -60,7 +65,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Register
   Future<bool> register(String username, String email, String password) async {
     _isLoading = true;
     _error = null;
@@ -88,7 +92,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Logout
   Future<void> logout() async {
     await _authService.logout();
     _currentUser = null;
@@ -96,7 +99,6 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Clear error
   void clearError() {
     _error = null;
     notifyListeners();

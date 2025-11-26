@@ -239,7 +239,7 @@ class NotificationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _getIconColor().withOpacity(0.1),
+                  color: _getIconColor().withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(_getIcon(), color: _getIconColor(), size: 20),
@@ -258,7 +258,7 @@ class NotificationCard extends StatelessWidget {
                           radius: 16,
                           backgroundColor: Theme.of(
                             context,
-                          ).primaryColor.withOpacity(0.1),
+                          ).primaryColor.withValues(alpha: 0.1),
                           backgroundImage:
                               notification.actor.profileImageUrl != null
                               ? NetworkImage(

@@ -40,7 +40,7 @@ class ChirpService {
           'content': content,
           if (replyToId != null) 'replyToId': replyToId,
         }),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Chirp.fromJson(jsonDecode(response.body));
@@ -97,6 +97,23 @@ class ChirpService {
 
       if (response.statusCode != 200) {
         throw Exception('Error al quitar like');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  // Repost chirp
+  Future<void> repostChirp(String chirpId) async {
+    try {
+      final headers = await _authService.getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.repost}/$chirpId'),
+        headers: headers,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al repostear');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');

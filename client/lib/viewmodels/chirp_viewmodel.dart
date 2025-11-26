@@ -113,6 +113,31 @@ class ChirpViewModel extends ChangeNotifier {
     }
   }
 
+  // Repost chirp
+  Future<void> repostChirp(String chirpId) async {
+    final index = _chirps.indexWhere((chirp) => chirp.id == chirpId);
+    if (index == -1) return;
+
+    final chirp = _chirps[index];
+    if (chirp.isReposted) return; // Already reposted
+
+    // Optimistic update
+    _chirps[index] = chirp.copyWith(
+      isReposted: true,
+      repostsCount: chirp.repostsCount + 1,
+    );
+    notifyListeners();
+
+    try {
+      await _chirpService.repostChirp(chirpId);
+    } catch (e) {
+      // Revert on error
+      _chirps[index] = chirp;
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
   // Load user chirps
   Future<void> loadUserChirps(String userId) async {
     _isLoading = true;

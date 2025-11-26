@@ -81,7 +81,7 @@ class _CreateChirpViewState extends State<CreateChirpView> {
               child: CustomTextField(
                 controller: _contentController,
                 hintText: '¿Qué está pasando?',
-                maxLines: 0,
+                maxLines: null,
                 maxLength: 280,
               ),
             ),

@@ -17,7 +17,8 @@ public class ChirpDTO {
     private int likesCount;
     private int repliesCount;
     private int repostsCount;
-    private boolean isLiked;
-    private boolean isReposted;
+    private boolean liked;
+    private boolean reposted;
     private Long replyToId;
+    private AuthorDTO repostedBy;
 }

@@ -11,6 +11,7 @@ class Chirp {
   final bool isLiked;
   final bool isReposted;
   final String? replyToId;
+  final User? repostedBy;
 
   Chirp({
     required this.id,
@@ -23,6 +24,7 @@ class Chirp {
     this.isLiked = false,
     this.isReposted = false,
     this.replyToId,
+    this.repostedBy,
   });
 
   factory Chirp.fromJson(Map<String, dynamic> json) {
@@ -36,9 +38,12 @@ class Chirp {
       likesCount: json['likesCount'] ?? 0,
       repliesCount: json['repliesCount'] ?? 0,
       repostsCount: json['repostsCount'] ?? 0,
-      isLiked: json['isLiked'] ?? false,
-      isReposted: json['isReposted'] ?? false,
+      isLiked: json['liked'] ?? json['isLiked'] ?? false,
+      isReposted: json['reposted'] ?? json['isReposted'] ?? false,
       replyToId: json['replyToId']?.toString(),
+      repostedBy: json['repostedBy'] != null
+          ? User.fromJson(json['repostedBy'])
+          : null,
     );
   }
 
@@ -54,6 +59,7 @@ class Chirp {
       'isLiked': isLiked,
       'isReposted': isReposted,
       'replyToId': replyToId,
+      'repostedBy': repostedBy?.toJson(),
     };
   }
 
@@ -68,6 +74,7 @@ class Chirp {
     bool? isLiked,
     bool? isReposted,
     String? replyToId,
+    User? repostedBy,
   }) {
     return Chirp(
       id: id ?? this.id,
@@ -80,6 +87,7 @@ class Chirp {
       isLiked: isLiked ?? this.isLiked,
       isReposted: isReposted ?? this.isReposted,
       replyToId: replyToId ?? this.replyToId,
+      repostedBy: repostedBy ?? this.repostedBy,
     );
   }
 }

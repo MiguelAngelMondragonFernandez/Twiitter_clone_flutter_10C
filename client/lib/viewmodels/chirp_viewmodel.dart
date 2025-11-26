@@ -33,9 +33,11 @@ class ChirpViewModel extends ChangeNotifier {
     try {
       final newChirps = await _chirpService.getFeed(page: _currentPage);
 
-      if (newChirps.isEmpty) {
+      if (newChirps.length < 20) {
         _hasMore = false;
-      } else {
+      }
+
+      if (newChirps.isNotEmpty) {
         _chirps.addAll(newChirps);
         _currentPage++;
       }
@@ -49,8 +51,8 @@ class ChirpViewModel extends ChangeNotifier {
 
   // Create chirp
   Future<bool> createChirp(String content, {String? replyToId}) async {
-    _error = null;
-    notifyListeners();
+    // _error = null; // Don't reset global error
+    // notifyListeners();
 
     try {
       final newChirp = await _chirpService.createChirp(
@@ -61,7 +63,7 @@ class ChirpViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      // _error = e.toString(); // Don't set global error
       notifyListeners();
       return false;
     }
@@ -69,8 +71,8 @@ class ChirpViewModel extends ChangeNotifier {
 
   // Delete chirp
   Future<bool> deleteChirp(String chirpId) async {
-    _error = null;
-    notifyListeners();
+    // _error = null;
+    // notifyListeners();
 
     try {
       await _chirpService.deleteChirp(chirpId);
@@ -78,16 +80,16 @@ class ChirpViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      // _error = e.toString();
       notifyListeners();
       return false;
     }
   }
 
   // Toggle like
-  Future<void> toggleLike(String chirpId) async {
+  Future<String?> toggleLike(String chirpId) async {
     final index = _chirps.indexWhere((chirp) => chirp.id == chirpId);
-    if (index == -1) return;
+    if (index == -1) return null;
 
     final chirp = _chirps[index];
     final wasLiked = chirp.isLiked;
@@ -95,7 +97,7 @@ class ChirpViewModel extends ChangeNotifier {
     // Optimistic update
     _chirps[index] = chirp.copyWith(
       isLiked: !wasLiked,
-      likesCount: wasLiked ? chirp.likesCount - 1 : chirp.likesCount + 1,
+      likesCount: wasLiked ? (chirp.likesCount > 0 ? chirp.likesCount - 1 : 0) : chirp.likesCount + 1,
     );
     notifyListeners();
 
@@ -105,11 +107,13 @@ class ChirpViewModel extends ChangeNotifier {
       } else {
         await _chirpService.likeChirp(chirpId);
       }
+      return null;
     } catch (e) {
       // Revert on error
       _chirps[index] = chirp;
-      _error = e.toString();
+      // _error = e.toString(); // Don't set global error
       notifyListeners();
+      return e.toString();
     }
   }
 
@@ -119,21 +123,25 @@ class ChirpViewModel extends ChangeNotifier {
     if (index == -1) return;
 
     final chirp = _chirps[index];
-    if (chirp.isReposted) return; // Already reposted
+    final wasReposted = chirp.isReposted;
 
     // Optimistic update
     _chirps[index] = chirp.copyWith(
-      isReposted: true,
-      repostsCount: chirp.repostsCount + 1,
+      isReposted: !wasReposted,
+      repostsCount: wasReposted ? (chirp.repostsCount > 0 ? chirp.repostsCount - 1 : 0) : chirp.repostsCount + 1,
     );
     notifyListeners();
 
     try {
-      await _chirpService.repostChirp(chirpId);
+      if (wasReposted) {
+        await _chirpService.unrepostChirp(chirpId);
+      } else {
+        await _chirpService.repostChirp(chirpId);
+      }
     } catch (e) {
       // Revert on error
       _chirps[index] = chirp;
-      _error = e.toString();
+      // _error = e.toString();
       notifyListeners();
     }
   }

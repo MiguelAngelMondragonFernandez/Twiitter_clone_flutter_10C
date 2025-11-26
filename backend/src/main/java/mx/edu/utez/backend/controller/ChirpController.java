@@ -21,10 +21,10 @@ import java.util.Map;
 @RequestMapping("/api/chirps")
 @CrossOrigin(origins = "*")
 public class ChirpController {
-    
+
     @Autowired
     private ChirpService chirpService;
-    
+
     @GetMapping("/feed")
     public ResponseEntity<List<ChirpDTO>> getFeed(
             @RequestParam(defaultValue = "0") int page,
@@ -34,7 +34,15 @@ public class ChirpController {
         List<ChirpDTO> feed = chirpService.getFeed(user, pageable);
         return ResponseEntity.ok(feed);
     }
-    
+
+    @GetMapping("/{chirpId}/replies")
+    public ResponseEntity<List<ChirpDTO>> getReplies(
+            @PathVariable Long chirpId,
+            @AuthenticationPrincipal User user) {
+        List<ChirpDTO> replies = chirpService.getReplies(chirpId, user);
+        return ResponseEntity.ok(replies);
+    }
+
     @PostMapping
     public ResponseEntity<ChirpDTO> createChirp(
             @Valid @RequestBody CreateChirpRequest request,
@@ -42,51 +50,63 @@ public class ChirpController {
         ChirpDTO chirp = chirpService.createChirp(request, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(chirp);
     }
-    
+
     @DeleteMapping("/{chirpId}")
     public ResponseEntity<Map<String, String>> deleteChirp(
             @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.deleteChirp(chirpId, user);
-        
+
         Map<String, String> response = new HashMap<>();
         response.put("message", "Chirp eliminado exitosamente");
         return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/like/{chirpId}")
     public ResponseEntity<Map<String, Object>> likeChirp(
             @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.likeChirp(chirpId, user);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Like agregado");
         response.put("isLiked", true);
         return ResponseEntity.ok(response);
     }
-    
+
     @DeleteMapping("/unlike/{chirpId}")
     public ResponseEntity<Map<String, Object>> unlikeChirp(
             @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.unlikeChirp(chirpId, user);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Like eliminado");
         response.put("isLiked", false);
         return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/repost/{chirpId}")
     public ResponseEntity<Map<String, Object>> repostChirp(
             @PathVariable Long chirpId,
             @AuthenticationPrincipal User user) {
         chirpService.repostChirp(chirpId, user);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Chirp reposteado");
         response.put("isReposted", true);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/repost/{chirpId}")
+    public ResponseEntity<Map<String, Object>> unrepostChirp(
+            @PathVariable Long chirpId,
+            @AuthenticationPrincipal User user) {
+        chirpService.unrepostChirp(chirpId, user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Repost eliminado");
+        response.put("isReposted", false);
         return ResponseEntity.ok(response);
     }
 }

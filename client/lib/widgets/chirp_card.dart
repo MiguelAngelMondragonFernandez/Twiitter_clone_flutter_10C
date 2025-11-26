@@ -5,6 +5,7 @@ import '../models/chirp.dart';
 import '../viewmodels/chirp_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../views/create_chirp_view.dart';
+import '../views/chirp_detail_view.dart';
 
 class ChirpCard extends StatelessWidget {
   final Chirp chirp;
@@ -43,15 +44,41 @@ class ChirpCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // Navigate to chirp detail
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChirpDetailView(chirp: chirp),
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Repost Indicator
+              if (chirp.repostedBy != null) ...[
+                Row(
+                  children: [
+                    const SizedBox(width: 32), // Align with content
+                    Icon(Icons.repeat, size: 12, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Reposteado por ${chirp.repostedBy!.displayName ?? chirp.repostedBy!.username}',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+
               // Header
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
                     radius: 20,
@@ -78,11 +105,14 @@ class ChirpCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              chirp.author.displayName ?? chirp.author.username,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            Flexible(
+                              child: Text(
+                                chirp.author.displayName ?? chirp.author.username,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -103,6 +133,8 @@ class ChirpCard extends StatelessWidget {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        Text(chirp.content, style: const TextStyle(fontSize: 15)),
                       ],
                     ),
                   ),
@@ -128,10 +160,6 @@ class ChirpCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Content
-              Text(chirp.content, style: const TextStyle(fontSize: 15)),
-              const SizedBox(height: 12),
-
               // Actions
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,9 +171,7 @@ class ChirpCard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CreateChirpView(
-                            replyToId: chirp.id,
-                          ),
+                          builder: (context) => ChirpDetailView(chirp: chirp),
                         ),
                       );
                     },
@@ -166,8 +192,13 @@ class ChirpCard extends StatelessWidget {
                     count: chirp.likesCount,
                     isActive: chirp.isLiked,
                     activeColor: Colors.red,
-                    onTap: () {
-                      chirpViewModel.toggleLike(chirp.id);
+                    onTap: () async {
+                      final error = await chirpViewModel.toggleLike(chirp.id);
+                      if (error != null && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error)),
+                        );
+                      }
                     },
                   ),
                   _ActionButton(

@@ -25,6 +25,7 @@ class ChirpService {
         throw Exception('Error al cargar el feed');
       }
     } catch (e) {
+      print('Error in getFeed: $e');
       throw Exception('Error de conexión: $e');
     }
   }
@@ -45,9 +46,11 @@ class ChirpService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Chirp.fromJson(jsonDecode(response.body));
       } else {
+        print('Error creating chirp: ${response.statusCode} ${response.body}');
         throw Exception('Error al crear el chirp');
       }
     } catch (e) {
+      print('Error in createChirp: $e');
       throw Exception('Error de conexión: $e');
     }
   }
@@ -62,9 +65,11 @@ class ChirpService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
+        print('Error deleting chirp: ${response.statusCode} ${response.body}');
         throw Exception('Error al eliminar el chirp');
       }
     } catch (e) {
+      print('Error in deleteChirp: $e');
       throw Exception('Error de conexión: $e');
     }
   }
@@ -79,9 +84,11 @@ class ChirpService {
       );
 
       if (response.statusCode != 200) {
+        print('Error liking chirp: ${response.statusCode} ${response.body}');
         throw Exception('Error al dar like');
       }
     } catch (e) {
+      print('Error in likeChirp: $e');
       throw Exception('Error de conexión: $e');
     }
   }
@@ -93,12 +100,14 @@ class ChirpService {
       final response = await http.delete(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.unlike}/$chirpId'),
         headers: headers,
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
+        print('Error unliking chirp: ${response.statusCode} ${response.body}');
         throw Exception('Error al quitar like');
       }
     } catch (e) {
+      print('Error in unlikeChirp: $e');
       throw Exception('Error de conexión: $e');
     }
   }
@@ -113,9 +122,30 @@ class ChirpService {
       );
 
       if (response.statusCode != 200) {
+        print('Error reposting chirp: ${response.statusCode} ${response.body}');
         throw Exception('Error al repostear');
       }
     } catch (e) {
+      print('Error in repostChirp: $e');
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  // Unrepost chirp
+  Future<void> unrepostChirp(String chirpId) async {
+    try {
+      final headers = await _authService.getAuthHeaders();
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.repost}/$chirpId'),
+        headers: headers,
+      );
+
+      if (response.statusCode != 200) {
+        print('Error unreposting chirp: ${response.statusCode} ${response.body}');
+        throw Exception('Error al eliminar repost');
+      }
+    } catch (e) {
+      print('Error in unrepostChirp: $e');
       throw Exception('Error de conexión: $e');
     }
   }
@@ -135,9 +165,33 @@ class ChirpService {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => Chirp.fromJson(json)).toList();
       } else {
+        print('Error getting user chirps: ${response.statusCode} ${response.body}');
         throw Exception('Error al cargar los chirps del usuario');
       }
     } catch (e) {
+      print('Error in getUserChirps: $e');
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  // Get replies
+  Future<List<Chirp>> getReplies(String chirpId) async {
+    try {
+      final headers = await _authService.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.chirps}/$chirpId/replies'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Chirp.fromJson(json)).toList();
+      } else {
+        print('Error getting replies: ${response.statusCode} ${response.body}');
+        throw Exception('Error al cargar las respuestas');
+      }
+    } catch (e) {
+      print('Error in getReplies: $e');
       throw Exception('Error de conexión: $e');
     }
   }

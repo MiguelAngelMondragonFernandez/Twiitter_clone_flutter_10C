@@ -99,6 +99,52 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> follow(String userId) async {
+    if (_currentUser == null || userId == _currentUser!.id) return false;
+
+    final originalUser = _currentUser;
+    // Optimistic update
+    _currentUser = _currentUser!.copyWith(
+      followingCount: _currentUser!.followingCount + 1,
+    );
+    notifyListeners();
+
+    try {
+      await _authService.followUser(userId);
+      // NOTE: Here we could re-fetch the user or update from a successful response
+      // to ensure data consistency with the backend, but for now this is fine.
+      return true;
+    } catch (e) {
+      // Revert on error
+      _currentUser = originalUser;
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> unfollow(String userId) async {
+    if (_currentUser == null || userId == _currentUser!.id) return false;
+
+    final originalUser = _currentUser;
+    // Optimistic update
+    _currentUser = _currentUser!.copyWith(
+      followingCount: _currentUser!.followingCount > 0 ? _currentUser!.followingCount - 1 : 0,
+    );
+    notifyListeners();
+
+    try {
+      await _authService.unfollowUser(userId);
+      return true;
+    } catch (e) {
+      // Revert on error
+      _currentUser = originalUser;
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();

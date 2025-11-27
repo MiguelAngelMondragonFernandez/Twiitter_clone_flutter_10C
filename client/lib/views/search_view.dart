@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/search_viewmodel.dart';
 import '../widgets/chirp_card.dart';
 import '../models/user.dart'; // Added import for User model
+import 'profile_view.dart';
 
 class SearchView extends StatefulWidget {
   const SearchView({super.key});
@@ -311,8 +312,12 @@ class UserListItem extends StatelessWidget {
         ],
       ),
       onTap: () {
-        // Navigate to user profile
-        // TODO: Implement user profile view for other users
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileView(user: user),
+          ),
+        );
       },
     );
   }

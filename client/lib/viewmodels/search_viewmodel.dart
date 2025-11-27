@@ -67,6 +67,7 @@ class SearchViewModel extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     _currentQuery = query;
+    _chirps = []; // Clear other results
     notifyListeners();
 
     try {
@@ -91,6 +92,7 @@ class SearchViewModel extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     _currentQuery = query;
+    _users = []; // Clear other results
     notifyListeners();
 
     try {

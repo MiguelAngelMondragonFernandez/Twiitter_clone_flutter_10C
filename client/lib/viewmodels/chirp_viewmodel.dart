@@ -64,7 +64,7 @@ class ChirpViewModel extends ChangeNotifier {
   }
 
   // Create chirp - adds to the feed
-  Future<bool> createChirp(String content, {String? replyToId}) async {
+  Future<bool> createChirp(String content, {String? replyToId, List<String>? imagePaths}) async {
     _error = null;
     notifyListeners();
     
@@ -72,6 +72,7 @@ class ChirpViewModel extends ChangeNotifier {
       final newChirp = await _chirpService.createChirp(
         content,
         replyToId: replyToId,
+        imagePaths: imagePaths,
       );
       _feedChirps.insert(0, newChirp);
       notifyListeners();

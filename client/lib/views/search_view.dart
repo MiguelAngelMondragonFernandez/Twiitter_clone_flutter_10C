@@ -272,10 +272,10 @@ class UserListItem extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-        backgroundImage: user.profileImageUrl != null
-            ? NetworkImage(user.profileImageUrl!)
+        backgroundImage: user.fullProfileImageUrl != null
+            ? NetworkImage(user.fullProfileImageUrl!)
             : null,
-        child: user.profileImageUrl == null
+        child: user.fullProfileImageUrl == null
             ? Text(
                 user.username[0].toUpperCase(),
                 style: TextStyle(

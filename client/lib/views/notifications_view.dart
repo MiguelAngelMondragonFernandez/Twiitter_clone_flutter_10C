@@ -260,12 +260,12 @@ class NotificationCard extends StatelessWidget {
                             context,
                           ).primaryColor.withValues(alpha: 0.1),
                           backgroundImage:
-                              notification.actor.profileImageUrl != null
+                              notification.actor.fullProfileImageUrl != null
                               ? NetworkImage(
-                                  notification.actor.profileImageUrl!,
+                                  notification.actor.fullProfileImageUrl!,
                                 )
                               : null,
-                          child: notification.actor.profileImageUrl == null
+                          child: notification.actor.fullProfileImageUrl == null
                               ? Text(
                                   notification.actor.username[0].toUpperCase(),
                                   style: TextStyle(

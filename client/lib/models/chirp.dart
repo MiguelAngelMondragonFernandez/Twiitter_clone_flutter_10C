@@ -12,6 +12,7 @@ class Chirp {
   final bool isReposted;
   final String? replyToId;
   final User? repostedBy;
+  final List<String> imageUrls;
 
   Chirp({
     required this.id,
@@ -25,6 +26,7 @@ class Chirp {
     this.isReposted = false,
     this.replyToId,
     this.repostedBy,
+    this.imageUrls = const [],
   });
 
   factory Chirp.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,10 @@ class Chirp {
       repostedBy: json['repostedBy'] != null
           ? User.fromJson(json['repostedBy'])
           : null,
+      imageUrls: (json['imageUrls'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 
@@ -60,6 +66,7 @@ class Chirp {
       'isReposted': isReposted,
       'replyToId': replyToId,
       'repostedBy': repostedBy?.toJson(),
+      'imageUrls': imageUrls,
     };
   }
 
@@ -75,6 +82,7 @@ class Chirp {
     bool? isReposted,
     String? replyToId,
     User? repostedBy,
+    List<String>? imageUrls,
   }) {
     return Chirp(
       id: id ?? this.id,
@@ -88,6 +96,7 @@ class Chirp {
       isReposted: isReposted ?? this.isReposted,
       replyToId: replyToId ?? this.replyToId,
       repostedBy: repostedBy ?? this.repostedBy,
+      imageUrls: imageUrls ?? this.imageUrls,
     );
   }
 }

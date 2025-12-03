@@ -4,6 +4,7 @@ import '../models/user.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/chirp_viewmodel.dart';
 import '../widgets/chirp_card.dart';
+import 'edit_profile_view.dart';
 
 class ProfileView extends StatefulWidget {
   final User? user; // User being viewed (can be null for current user's profile)
@@ -90,6 +91,30 @@ class _ProfileViewState extends State<ProfileView> {
                 vertical: 8.0,
               ),
               child: _buildFollowButton(),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 8.0,
+              ),
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileView(user: _profileUser),
+                    ),
+                  ).then((_) {
+                    // Refresh profile when returning from edit
+                    setState(() {
+                      // Trigger a rebuild or re-fetch if needed
+                      // For now, the viewmodel might be updated via notifyListeners
+                    });
+                  });
+                },
+                child: const Text('Editar perfil'),
+              ),
             ),
         ],
       ),
@@ -183,10 +208,10 @@ class _ProfileViewState extends State<ProfileView> {
           CircleAvatar(
             radius: 40,
             backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
-            backgroundImage: _profileUser.profileImageUrl != null
-                ? NetworkImage(_profileUser.profileImageUrl!)
+            backgroundImage: _profileUser.fullProfileImageUrl != null
+                ? NetworkImage(_profileUser.fullProfileImageUrl!)
                 : null,
-            child: _profileUser.profileImageUrl == null
+            child: _profileUser.fullProfileImageUrl == null
                 ? Text(
                     _profileUser.username[0].toUpperCase(),
                     style: TextStyle(
@@ -214,6 +239,25 @@ class _ProfileViewState extends State<ProfileView> {
               color: Colors.grey.shade600,
             ),
           ),
+
+          // Location
+          if ((_profileUser.city != null && _profileUser.city!.isNotEmpty) ||
+              (_profileUser.country != null && _profileUser.country!.isNotEmpty)) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 16, color: Colors.grey.shade600),
+                const SizedBox(width: 4),
+                Text(
+                  [
+                    if (_profileUser.city != null && _profileUser.city!.isNotEmpty) _profileUser.city,
+                    if (_profileUser.country != null && _profileUser.country!.isNotEmpty) _profileUser.country,
+                  ].join(', '),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+              ],
+            ),
+          ],
 
           // Bio
           if (_profileUser.bio != null && _profileUser.bio!.isNotEmpty) ...[

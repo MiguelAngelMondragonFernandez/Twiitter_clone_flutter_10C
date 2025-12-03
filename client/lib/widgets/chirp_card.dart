@@ -6,6 +6,7 @@ import '../viewmodels/chirp_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../views/create_chirp_view.dart';
 import '../views/chirp_detail_view.dart';
+import '../utils/api_constants.dart';
 
 class ChirpCard extends StatelessWidget {
   final Chirp chirp;
@@ -85,10 +86,10 @@ class ChirpCard extends StatelessWidget {
                     backgroundColor: Theme.of(
                       context,
                     ).primaryColor.withValues(alpha: 0.1),
-                    backgroundImage: chirp.author.profileImageUrl != null
-                        ? NetworkImage(chirp.author.profileImageUrl!)
+                    backgroundImage: chirp.author.fullProfileImageUrl != null
+                        ? NetworkImage(chirp.author.fullProfileImageUrl!)
                         : null,
-                    child: chirp.author.profileImageUrl == null
+                    child: chirp.author.fullProfileImageUrl == null
                         ? Text(
                             chirp.author.username[0].toUpperCase(),
                             style: TextStyle(
@@ -135,6 +136,32 @@ class ChirpCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(chirp.content, style: const TextStyle(fontSize: 15)),
+                        if (chirp.imageUrls.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 200,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: chirp.imageUrls.length,
+                              itemBuilder: (context, index) {
+                                final imageUrl = chirp.imageUrls[index].startsWith('http')
+                                    ? chirp.imageUrls[index]
+                                    : '${ApiConstants.serverUrl}${chirp.imageUrls[index]}';
+                                return Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  width: 200,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: DecorationImage(
+                                      image: NetworkImage(imageUrl),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

@@ -154,4 +154,65 @@ class AuthService {
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
+  // Update profile
+  Future<User> updateProfile(String displayName, String bio, {String? imagePath, String? city, String? country}) async {
+    try {
+      final token = await getToken();
+      final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.profile}');
+      final request = http.MultipartRequest('PUT', uri);
+
+      request.headers.addAll({
+        if (token != null) 'Authorization': 'Bearer $token',
+      });
+
+      request.fields['displayName'] = displayName;
+      request.fields['bio'] = bio;
+      if (city != null) request.fields['city'] = city;
+      if (country != null) request.fields['country'] = country;
+
+      if (imagePath != null) {
+        request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _saveUser(data); 
+        return User.fromJson(data);
+      } else {
+        print('Error updating profile: ${response.statusCode} ${response.body}');
+        throw Exception('Error al actualizar perfil');
+      }
+    } catch (e) {
+      print('Error in updateProfile: $e');
+      throw Exception('Error de conexión: $e');
+    }
+  }
+  // Fetch user profile from backend
+  Future<User?> fetchUserProfile() async {
+    try {
+      final headers = await getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.profile}'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _saveUser(data);
+        return User.fromJson(data);
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // Token expired or invalid
+        await logout();
+        return null;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching profile: $e');
+      return null;
+    }
+  }
 }

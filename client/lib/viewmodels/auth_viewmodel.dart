@@ -24,10 +24,18 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
-        _currentUser = await _authService.getStoredUser();
+        // Verify token with backend
+        final user = await _authService.fetchUserProfile();
+        if (user != null) {
+          _currentUser = user;
+        } else {
+          // Token invalid/expired, logout handled in fetchUserProfile or here
+          _currentUser = null;
+        }
       }
     } catch (e) {
       _error = e.toString();
+      _currentUser = null;
     }
 
     _isLoading = false;
@@ -140,6 +148,26 @@ class AuthViewModel extends ChangeNotifier {
       // Revert on error
       _currentUser = originalUser;
       _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Update profile
+  Future<bool> updateProfile(String displayName, String bio, {String? imagePath, String? city, String? country}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedUser = await _authService.updateProfile(displayName, bio, imagePath: imagePath, city: city, country: country);
+      _currentUser = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
       notifyListeners();
       return false;
     }

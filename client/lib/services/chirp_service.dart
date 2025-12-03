@@ -31,17 +31,36 @@ class ChirpService {
   }
 
   // Create chirp
-  Future<Chirp> createChirp(String content, {String? replyToId}) async {
+  Future<Chirp> createChirp(
+    String content, {
+    String? replyToId,
+    List<String>? imagePaths,
+  }) async {
     try {
-      final headers = await _authService.getAuthHeaders();
-      final response = await http.post(
+      final token = await _authService.getToken();
+      if (token == null) throw Exception('No token found');
+
+      var request = http.MultipartRequest(
+        'POST',
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.chirps}'),
-        headers: headers,
-        body: jsonEncode({
-          'content': content,
-          if (replyToId != null) 'replyToId': replyToId,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['content'] = content;
+      if (replyToId != null) {
+        request.fields['replyToId'] = replyToId;
+      }
+
+      if (imagePaths != null) {
+        for (var path in imagePaths) {
+          request.files.add(await http.MultipartFile.fromPath('images', path));
+        }
+      }
+
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Chirp.fromJson(jsonDecode(response.body));

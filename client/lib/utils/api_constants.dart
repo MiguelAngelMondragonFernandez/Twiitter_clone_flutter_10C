@@ -19,6 +19,10 @@ class ApiConstants {
     return 'http://localhost:8081/api';
   }
 
+  static String get serverUrl {
+    return baseUrl.replaceAll('/api', '');
+  }
+
   // Auth endpoints
   static const String login = '/auth/login';
   static const String register = '/auth/register';

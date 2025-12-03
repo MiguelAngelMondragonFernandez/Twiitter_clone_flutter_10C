@@ -1,166 +1,246 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/user.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/chirp_viewmodel.dart';
 import '../widgets/chirp_card.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({super.key});
+  final User? user; // User being viewed (can be null for current user's profile)
+
+  const ProfileView({super.key, this.user});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {
+  // Local state for the user being displayed to allow for optimistic UI updates
+  late User _profileUser;
+  bool _isCurrentUserProfile = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      final chirpViewModel = Provider.of<ChirpViewModel>(
-        context,
-        listen: false,
-      );
 
-      if (authViewModel.currentUser != null) {
-        chirpViewModel.loadUserChirps(authViewModel.currentUser!.id);
-      }
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    
+    // Determine if this is the logged-in user's own profile
+    _isCurrentUserProfile = widget.user == null || widget.user!.id == authViewModel.currentUser?.id;
+
+    // Initialize the local user state
+    _profileUser = widget.user ?? authViewModel.currentUser!;
+    
+    // Fetch user's chirps
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final chirpViewModel = Provider.of<ChirpViewModel>(context, listen: false);
+      chirpViewModel.loadUserChirps(_profileUser.id);
     });
+  }
+
+  Future<void> _toggleFollow() async {
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    final currentFollowState = _profileUser.isFollowing;
+    
+    // Call the appropriate viewmodel method
+    final success = currentFollowState
+        ? await authViewModel.unfollow(_profileUser.id)
+        : await authViewModel.follow(_profileUser.id);
+
+    // If the API call was successful, update the local state to rebuild the UI
+    if (success) {
+      setState(() {
+        _profileUser = _profileUser.copyWith(
+          isFollowing: !currentFollowState,
+          followersCount: currentFollowState
+              ? _profileUser.followersCount - 1
+              : _profileUser.followersCount + 1,
+        );
+      });
+      
+      // Also, refresh the main feed so the changes are reflected there
+      if (mounted) {
+        Provider.of<ChirpViewModel>(context, listen: false).loadFeed(refresh: true);
+      }
+
+    } else {
+      // Optional: Show a snackbar on failure
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authViewModel.error ?? 'Ocurrió un error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<AuthViewModel, ChirpViewModel>(
-      builder: (context, authViewModel, chirpViewModel, child) {
-        final user = authViewModel.currentUser;
+    // The main consumer is now for the chirps, as user data is handled in local state.
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_profileUser.displayName ?? _profileUser.username),
+        actions: [
+          if (!_isCurrentUserProfile)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 8.0,
+              ),
+              child: _buildFollowButton(),
+            ),
+        ],
+      ),
+      body: Consumer<ChirpViewModel>(
+        builder: (context, chirpViewModel, child) {
+          return CustomScrollView(
+            slivers: [
+              // Profile Header
+              SliverToBoxAdapter(
+                child: _buildProfileHeader(),
+              ),
 
-        if (user == null) {
-          return const Center(child: Text('No hay usuario autenticado'));
-        }
-
-        return CustomScrollView(
-          slivers: [
-            // Profile Header
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Avatar
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).primaryColor.withValues(alpha: 0.1),
-                      backgroundImage: user.profileImageUrl != null
-                          ? NetworkImage(user.profileImageUrl!)
-                          : null,
-                      child: user.profileImageUrl == null
-                          ? Text(
-                              user.username[0].toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 32,
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : null,
+              // User's chirps
+              if (chirpViewModel.isUserProfileLoading)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (chirpViewModel.userProfileError != null)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      'Error al cargar chirps',
+                      style: TextStyle(color: Colors.grey.shade600),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Name and username
-                    Text(
-                      user.displayName ?? user.username,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '@${user.username}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-
-                    // Bio
-                    if (user.bio != null) ...[
-                      const SizedBox(height: 12),
-                      Text(user.bio!, style: const TextStyle(fontSize: 15)),
-                    ],
-
-                    const SizedBox(height: 16),
-
-                    // Stats
-                    Row(
+                  ),
+                )
+              else if (chirpViewModel.userProfileChirps.isEmpty)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _StatItem(
-                          count: user.followingCount,
-                          label: 'Siguiendo',
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: Colors.grey.shade400,
                         ),
-                        const SizedBox(width: 24),
-                        _StatItem(
-                          count: user.followersCount,
-                          label: 'Seguidores',
+                        const SizedBox(height: 16),
+                        Text(
+                          'Aún no hay chirps',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                  ],
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return ChirpCard(chirp: chirpViewModel.userProfileChirps[index]);
+                    },
+                    childCount: chirpViewModel.userProfileChirps.length,
+                  ),
                 ),
-              ),
-            ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
-            // User's chirps
-            if (chirpViewModel.isLoading)
-              const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (chirpViewModel.error != null)
-              SliverFillRemaining(
-                child: Center(
-                  child: Text(
-                    'Error al cargar chirps',
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                ),
-              )
-            else if (chirpViewModel.chirps.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.chat_bubble_outline,
-                        size: 64,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No has chirpeado aún',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return ChirpCard(chirp: chirpViewModel.chirps[index]);
-                }, childCount: chirpViewModel.chirps.length),
-              ),
+  Widget _buildFollowButton() {
+    if (_profileUser.isFollowing) {
+      return OutlinedButton(
+        onPressed: _toggleFollow,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.red, side: const BorderSide(color: Colors.red),
+        ),
+        child: const Text('Dejar de seguir'),
+      );
+    } else {
+      return ElevatedButton(
+        onPressed: _toggleFollow,
+        child: const Text('Seguir'),
+      );
+    }
+  }
+
+  Widget _buildProfileHeader() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Avatar
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
+            backgroundImage: _profileUser.profileImageUrl != null
+                ? NetworkImage(_profileUser.profileImageUrl!)
+                : null,
+            child: _profileUser.profileImageUrl == null
+                ? Text(
+                    _profileUser.username[0].toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 32,
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 16),
+
+          // Name and username
+          Text(
+            _profileUser.displayName ?? _profileUser.username,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            '@${_profileUser.username}',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+            ),
+          ),
+
+          // Bio
+          if (_profileUser.bio != null && _profileUser.bio!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(_profileUser.bio!, style: const TextStyle(fontSize: 15)),
           ],
-        );
-      },
+
+          const SizedBox(height: 16),
+
+          // Stats
+          Row(
+            children: [
+              _StatItem(
+                count: _profileUser.followingCount,
+                label: 'Siguiendo',
+              ),
+              const SizedBox(width: 24),
+              _StatItem(
+                count: _profileUser.followersCount,
+                label: 'Seguidores',
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+        ],
+      ),
     );
   }
 }

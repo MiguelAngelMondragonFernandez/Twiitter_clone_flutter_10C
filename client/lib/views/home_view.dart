@@ -35,7 +35,7 @@ class _HomeViewState extends State<HomeView> {
           context,
           listen: false,
         );
-        if (!chirpViewModel.isLoading && chirpViewModel.hasMore) {
+        if (!chirpViewModel.isFeedLoading && chirpViewModel.feedHasMore) {
           chirpViewModel.loadFeed();
         }
       }
@@ -196,11 +196,11 @@ class _HomeViewState extends State<HomeView> {
       onRefresh: _loadFeed,
       child: Consumer<ChirpViewModel>(
         builder: (context, chirpViewModel, child) {
-          if (chirpViewModel.isLoading && chirpViewModel.chirps.isEmpty) {
+          if (chirpViewModel.isFeedLoading && chirpViewModel.feedChirps.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (chirpViewModel.error != null && chirpViewModel.chirps.isEmpty) {
+          if (chirpViewModel.feedError != null && chirpViewModel.feedChirps.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -219,7 +219,7 @@ class _HomeViewState extends State<HomeView> {
             );
           }
 
-          if (chirpViewModel.chirps.isEmpty) {
+          if (chirpViewModel.feedChirps.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -251,16 +251,16 @@ class _HomeViewState extends State<HomeView> {
           return ListView.builder(
             controller: _scrollController,
             itemCount:
-                chirpViewModel.chirps.length + (chirpViewModel.hasMore ? 1 : 0),
+                chirpViewModel.feedChirps.length + (chirpViewModel.feedHasMore ? 1 : 0),
             itemBuilder: (context, index) {
-              if (index == chirpViewModel.chirps.length) {
+              if (index == chirpViewModel.feedChirps.length) {
                 return const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
 
-              return ChirpCard(chirp: chirpViewModel.chirps[index]);
+              return ChirpCard(chirp: chirpViewModel.feedChirps[index]);
             },
           );
         },

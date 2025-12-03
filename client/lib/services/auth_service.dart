@@ -97,6 +97,44 @@ class AuthService {
     return token != null;
   }
 
+  // Follow a user
+  Future<void> followUser(String userId) async {
+    try {
+      final headers = await getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.follow}/$userId'),
+        headers: headers,
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to follow user');
+      }
+    } catch (e) {
+      // Re-throw the exception to be handled by the ViewModel
+      throw Exception('Error following user: $e');
+    }
+  }
+
+  // Unfollow a user
+  Future<void> unfollowUser(String userId) async {
+    try {
+      final headers = await getAuthHeaders();
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.unfollow}/$userId'),
+        headers: headers,
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to unfollow user');
+      }
+    } catch (e) {
+      // Re-throw the exception to be handled by the ViewModel
+      throw Exception('Error unfollowing user: $e');
+    }
+  }
+
   // Private methods
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();

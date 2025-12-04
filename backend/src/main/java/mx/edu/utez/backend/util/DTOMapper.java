@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DTOMapper {
-    
+
     public UserDTO toUserDTO(User user) {
         return toUserDTO(user, null);
     }
-    
+
     public UserDTO toUserDTO(User user, Boolean isFollowing) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
@@ -24,13 +24,15 @@ public class DTOMapper {
         dto.setDisplayName(user.getDisplayName());
         dto.setBio(user.getBio());
         dto.setProfileImageUrl(user.getProfileImageUrl());
+        dto.setCity(user.getCity());
+        dto.setCountry(user.getCountry());
         dto.setFollowersCount(user.getFollowersCount());
         dto.setFollowingCount(user.getFollowingCount());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setIsFollowing(isFollowing);
         return dto;
     }
-    
+
     public AuthorDTO toAuthorDTO(User user) {
         AuthorDTO dto = new AuthorDTO();
         dto.setId(user.getId());
@@ -39,7 +41,7 @@ public class DTOMapper {
         dto.setProfileImageUrl(user.getProfileImageUrl());
         return dto;
     }
-    
+
     public ChirpDTO toChirpDTO(Chirp chirp, boolean isLiked, boolean isReposted) {
         ChirpDTO dto = new ChirpDTO();
         dto.setId(chirp.getId());
@@ -52,9 +54,10 @@ public class DTOMapper {
         dto.setLiked(isLiked);
         dto.setReposted(isReposted);
         dto.setReplyToId(chirp.getReplyTo() != null ? chirp.getReplyTo().getId() : null);
+        dto.setImageUrls(chirp.getImageUrls());
         return dto;
     }
-    
+
     public NotificationDTO toNotificationDTO(Notification notification) {
         NotificationDTO dto = new NotificationDTO();
         dto.setId(notification.getId());

@@ -21,4 +21,5 @@ public class ChirpDTO {
     private boolean reposted;
     private Long replyToId;
     private AuthorDTO repostedBy;
+    private java.util.List<String> imageUrls;
 }

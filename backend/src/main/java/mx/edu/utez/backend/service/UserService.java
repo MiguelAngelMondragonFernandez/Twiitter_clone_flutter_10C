@@ -158,10 +158,19 @@ public class UserService {
             currentUser.setBio(request.getBio());
         }
 
+        if (request.getCity() != null) {
+            currentUser.setCity(request.getCity());
+        }
+
+        if (request.getCountry() != null) {
+            currentUser.setCountry(request.getCountry());
+        }
+
         if (image != null && !image.isEmpty()) {
             try {
                 String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-                Path uploadPath = Paths.get("uploads");
+                String userDir = System.getProperty("user.dir");
+                Path uploadPath = Paths.get(userDir, "uploads");
 
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
@@ -169,13 +178,8 @@ public class UserService {
 
                 Files.copy(image.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
 
-                // Assuming the server URL is handled by the client or we store relative path
-                // Storing relative path /uploads/filename
-                String fileUrl = "http://10.0.2.2:8081/uploads/" + fileName; // For Android Emulator
-                // Ideally this should be dynamic based on server config, but for this task
-                // hardcoding for emulator/local access
-                // Or better, just store "/uploads/" + fileName and let client prepend base URL.
-                // Let's store full URL for simplicity with current frontend logic
+                // Store relative path so frontend can prepend appropriate base URL
+                String fileUrl = "/uploads/" + fileName;
                 currentUser.setProfileImageUrl(fileUrl);
             } catch (IOException e) {
                 throw new RuntimeException("Error al guardar la imagen", e);

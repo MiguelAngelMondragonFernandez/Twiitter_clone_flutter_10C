@@ -70,6 +70,9 @@ public class ChirpService {
                     dto.setReplyToId(item.getReplyToId());
                     dto.setLiked(isLiked);
                     dto.setReposted(isReposted);
+                    dto.setLiked(isLiked);
+                    dto.setReposted(isReposted);
+                    dto.setImageUrls(chirpRepository.findImageUrlsByChirpId(item.getId()));
 
                     AuthorDTO author = new AuthorDTO();
                     author.setId(item.getAuthorId());
@@ -104,10 +107,39 @@ public class ChirpService {
     }
 
     @Transactional
-    public ChirpDTO createChirp(CreateChirpRequest request, User currentUser) {
+    public ChirpDTO createChirp(CreateChirpRequest request,
+            List<org.springframework.web.multipart.MultipartFile> images, User currentUser) {
         Chirp chirp = new Chirp();
         chirp.setContent(request.getContent());
         chirp.setAuthor(currentUser);
+
+        // Handle images
+        if (images != null && !images.isEmpty()) {
+            if (images.size() > 5) {
+                throw new mx.edu.utez.backend.exception.BadRequestException("No puedes subir más de 5 imágenes");
+            }
+
+            List<String> imageUrls = new ArrayList<>();
+            try {
+                String userDir = System.getProperty("user.dir");
+                java.nio.file.Path uploadPath = java.nio.file.Paths.get(userDir, "uploads");
+                if (!java.nio.file.Files.exists(uploadPath)) {
+                    java.nio.file.Files.createDirectories(uploadPath);
+                }
+
+                for (org.springframework.web.multipart.MultipartFile image : images) {
+                    if (!image.isEmpty()) {
+                        String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+                        java.nio.file.Files.copy(image.getInputStream(), uploadPath.resolve(fileName),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        imageUrls.add("/uploads/" + fileName);
+                    }
+                }
+            } catch (java.io.IOException e) {
+                throw new RuntimeException("Error al guardar las imágenes", e);
+            }
+            chirp.setImageUrls(imageUrls);
+        }
 
         // Si es una respuesta, verificar que el chirp padre existe
         if (request.getReplyToId() != null) {

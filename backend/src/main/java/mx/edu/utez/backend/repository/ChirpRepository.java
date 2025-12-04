@@ -83,4 +83,7 @@ public interface ChirpRepository extends JpaRepository<Chirp, Long> {
 
     @Query("SELECT c FROM Chirp c WHERE c.replyTo.id = :chirpId ORDER BY c.createdAt ASC")
     List<Chirp> findRepliesByChirpId(@Param("chirpId") Long chirpId);
+
+    @Query("SELECT i FROM Chirp c JOIN c.imageUrls i WHERE c.id = :chirpId")
+    List<String> findImageUrlsByChirpId(@Param("chirpId") Long chirpId);
 }

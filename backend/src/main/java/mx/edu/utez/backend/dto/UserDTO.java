@@ -10,12 +10,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
-    private Long id;  // CAMBIAR A LONG
+    private Long id; // CAMBIAR A LONG
     private String username;
     private String email;
     private String displayName;
     private String bio;
     private String profileImageUrl;
+    private String city;
+    private String country;
     private int followersCount;
     private int followingCount;
     private LocalDateTime createdAt;

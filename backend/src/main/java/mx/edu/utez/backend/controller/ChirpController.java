@@ -1,6 +1,5 @@
 package mx.edu.utez.backend.controller;
 
-import jakarta.validation.Valid;
 import mx.edu.utez.backend.dto.ChirpDTO;
 import mx.edu.utez.backend.dto.request.CreateChirpRequest;
 import mx.edu.utez.backend.model.User;
@@ -43,11 +42,14 @@ public class ChirpController {
         return ResponseEntity.ok(replies);
     }
 
-    @PostMapping
+    @PostMapping(consumes = { "multipart/form-data" })
     public ResponseEntity<ChirpDTO> createChirp(
-            @Valid @RequestBody CreateChirpRequest request,
+            @RequestParam("content") String content,
+            @RequestParam(value = "replyToId", required = false) Long replyToId,
+            @RequestPart(value = "images", required = false) List<org.springframework.web.multipart.MultipartFile> images,
             @AuthenticationPrincipal User user) {
-        ChirpDTO chirp = chirpService.createChirp(request, user);
+        CreateChirpRequest request = new CreateChirpRequest(content, replyToId);
+        ChirpDTO chirp = chirpService.createChirp(request, images, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(chirp);
     }
 

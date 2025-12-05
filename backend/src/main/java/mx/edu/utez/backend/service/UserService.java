@@ -48,6 +48,9 @@ public class UserService {
     private NotificationRepository notificationRepository;
 
     @Autowired
+    private FirebaseService firebaseService;
+
+    @Autowired
     private DTOMapper dtoMapper;
 
     @Transactional(readOnly = true)
@@ -87,7 +90,7 @@ public class UserService {
     }
 
     @Transactional
-    public void followUser(Long userIdToFollow, User currentUser) {
+    public UserDTO followUser(Long userIdToFollow, User currentUser) {
         // No puede seguirse a sí mismo
         if (currentUser.getId().equals(userIdToFollow)) {
             throw new BadRequestException("No puedes seguirte a ti mismo");
@@ -107,12 +110,14 @@ public class UserService {
         follow.setFollower(currentUser);
         follow.setFollowing(userToFollow);
         followRepository.save(follow);
+        followRepository.flush(); // Force immediate save
 
         // Actualizar contadores
         currentUser.setFollowingCount(currentUser.getFollowingCount() + 1);
         userToFollow.setFollowersCount(userToFollow.getFollowersCount() + 1);
         userRepository.save(currentUser);
         userRepository.save(userToFollow);
+        userRepository.flush(); // Force immediate update
 
         // Crear notificación
         Notification notification = new Notification();
@@ -120,10 +125,19 @@ public class UserService {
         notification.setActor(currentUser);
         notification.setUser(userToFollow);
         notificationRepository.save(notification);
+
+        // Enviar push notification
+        firebaseService.sendPushNotificationToUser(
+                userToFollow,
+                "Nuevo seguidor",
+                currentUser.getDisplayName() + " comenzó a seguirte");
+
+        // Devolver el usuario actualizado con isFollowing=true
+        return dtoMapper.toUserDTO(userToFollow, true);
     }
 
     @Transactional
-    public void unfollowUser(Long userIdToUnfollow, User currentUser) {
+    public UserDTO unfollowUser(Long userIdToUnfollow, User currentUser) {
         // No puede dejar de seguirse a sí mismo
         if (currentUser.getId().equals(userIdToUnfollow)) {
             throw new BadRequestException("No puedes dejar de seguirte a ti mismo");
@@ -139,12 +153,17 @@ public class UserService {
 
         // Eliminar la relación
         followRepository.delete(follow);
+        followRepository.flush(); // Force immediate deletion
 
         // Actualizar contadores
         currentUser.setFollowingCount(Math.max(0, currentUser.getFollowingCount() - 1));
         userToUnfollow.setFollowersCount(Math.max(0, userToUnfollow.getFollowersCount() - 1));
         userRepository.save(currentUser);
         userRepository.save(userToUnfollow);
+        userRepository.flush(); // Force immediate update
+
+        // Devolver el usuario actualizado con isFollowing=false
+        return dtoMapper.toUserDTO(userToUnfollow, false);
     }
 
     @Transactional

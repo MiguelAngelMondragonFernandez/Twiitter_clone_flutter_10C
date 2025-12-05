@@ -48,27 +48,19 @@ public class UserController {
     }
 
     @PostMapping("/follow/{userId}")
-    public ResponseEntity<Map<String, Object>> followUser(
+    public ResponseEntity<UserDTO> followUser(
             @PathVariable Long userId,
             @AuthenticationPrincipal User currentUser) {
-        userService.followUser(userId, currentUser);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Usuario seguido exitosamente");
-        response.put("isFollowing", true);
-        return ResponseEntity.ok(response);
+        UserDTO updatedUser = userService.followUser(userId, currentUser);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/unfollow/{userId}")
-    public ResponseEntity<Map<String, Object>> unfollowUser(
+    public ResponseEntity<UserDTO> unfollowUser(
             @PathVariable Long userId,
             @AuthenticationPrincipal User currentUser) {
-        userService.unfollowUser(userId, currentUser);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Has dejado de seguir al usuario");
-        response.put("isFollowing", false);
-        return ResponseEntity.ok(response);
+        UserDTO updatedUser = userService.unfollowUser(userId, currentUser);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @PutMapping(value = "/profile", consumes = { "multipart/form-data" })

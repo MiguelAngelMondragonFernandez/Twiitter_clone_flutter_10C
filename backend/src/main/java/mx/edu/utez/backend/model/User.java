@@ -101,4 +101,15 @@ public class User {
     @JsonIgnore
     private List<Notification> notifications = new ArrayList<>();
 
+    @Column(name = "fcm_token", length = 512)
+    private String fcmToken;
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
 }

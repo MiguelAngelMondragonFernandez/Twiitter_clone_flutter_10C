@@ -41,6 +41,9 @@ public class ChirpService {
     private NotificationRepository notificationRepository;
 
     @Autowired
+    private FirebaseService firebaseService;
+
+    @Autowired
     private DTOMapper dtoMapper;
 
     @Transactional(readOnly = true)
@@ -72,6 +75,10 @@ public class ChirpService {
                     dto.setReposted(isReposted);
                     dto.setLiked(isLiked);
                     dto.setReposted(isReposted);
+                    dto.setLatitude(item.getLatitude());
+                    dto.setLongitude(item.getLongitude());
+                    dto.setCity(item.getCity());
+                    dto.setCountry(item.getCountry());
                     dto.setImageUrls(chirpRepository.findImageUrlsByChirpId(item.getId()));
 
                     AuthorDTO author = new AuthorDTO();
@@ -161,7 +168,25 @@ public class ChirpService {
                 notification.setChirp(chirp);
                 notification.setContent(request.getContent());
                 notificationRepository.save(notification);
+
+                // Enviar push notification
+                firebaseService.sendPushNotificationToUser(
+                        replyTo.getAuthor(),
+                        "Nueva respuesta",
+                        currentUser.getDisplayName() + " respondió a tu chirp");
             }
+        }
+
+        // Save geolocation data if provided
+        if (request.getLatitude() != null && request.getLongitude() != null) {
+            chirp.setLatitude(request.getLatitude());
+            chirp.setLongitude(request.getLongitude());
+        }
+        if (request.getCity() != null) {
+            chirp.setCity(request.getCity());
+        }
+        if (request.getCountry() != null) {
+            chirp.setCountry(request.getCountry());
         }
 
         chirp = chirpRepository.save(chirp);
@@ -211,6 +236,12 @@ public class ChirpService {
             notification.setUser(chirp.getAuthor());
             notification.setChirp(chirp);
             notificationRepository.save(notification);
+
+            // Enviar push notification
+            firebaseService.sendPushNotificationToUser(
+                    chirp.getAuthor(),
+                    "Nuevo like",
+                    currentUser.getDisplayName() + " le dio like a tu chirp");
         }
     }
 
@@ -258,6 +289,12 @@ public class ChirpService {
             notification.setUser(chirp.getAuthor());
             notification.setChirp(chirp);
             notificationRepository.save(notification);
+
+            // Enviar push notification
+            firebaseService.sendPushNotificationToUser(
+                    chirp.getAuthor(),
+                    "Nuevo repost",
+                    currentUser.getDisplayName() + " reposteó tu chirp");
         }
     }
 

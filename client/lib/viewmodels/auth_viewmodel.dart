@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../models/user.dart';
 import '../services/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
 
   User? _currentUser;
   bool _isLoading = false;
@@ -14,24 +16,46 @@ class AuthViewModel extends ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _currentUser != null;
 
-  // --- FIX: NO HACER notifyListeners() DURANTE EL BUILD ---
+  AuthViewModel() {
+    _initAuthStateListener();
+  }
+
+  // 🔥 Escucha cambios en Firebase Auth
+  void _initAuthStateListener() {
+    _firebaseAuth.authStateChanges().listen((firebaseUser) {
+      if (firebaseUser != null) {
+        _currentUser = _convertFirebaseUserToUser(firebaseUser);
+      } else {
+        _currentUser = null;
+      }
+      notifyListeners();
+    });
+  }
+
+  // Convierte FirebaseUser a tu modelo User
+  User _convertFirebaseUserToUser(firebase_auth.User firebaseUser) {
+    return User(
+      id: firebaseUser.uid,
+      username: firebaseUser.displayName ?? 'Usuario',
+      email: firebaseUser.email ?? '',
+      bio: '',
+      profileImageUrl: firebaseUser.photoURL,
+      followersCount: 0,
+      followingCount: 0,
+      createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
+    );
+  }
+
   Future<void> checkAuthStatus() async {
     _isLoading = true;
-
-    // 🔥 Disparamos el notify después del build
     Future.microtask(() => notifyListeners());
 
     try {
-      final isLoggedIn = await _authService.isLoggedIn();
-      if (isLoggedIn) {
-        // Verify token with backend
-        final user = await _authService.fetchUserProfile();
-        if (user != null) {
-          _currentUser = user;
-        } else {
-          // Token invalid/expired, logout handled in fetchUserProfile or here
-          _currentUser = null;
-        }
+      final firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser != null) {
+        _currentUser = _convertFirebaseUserToUser(firebaseUser);
+      } else {
+        _currentUser = null;
       }
     } catch (e) {
       _error = e.toString();
@@ -39,12 +63,8 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _isLoading = false;
-
-    // 🔥 Nuevo notify seguro
     Future.microtask(() => notifyListeners());
   }
-
-  // ---------------------------------------------------------
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
@@ -52,19 +72,27 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _authService.login(email, password);
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      if (result['success']) {
-        _currentUser = result['user'];
+      if (userCredential.user != null) {
+        _currentUser = _convertFirebaseUserToUser(userCredential.user!);
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = result['error'];
+        _error = 'Login failed';
         _isLoading = false;
         notifyListeners();
         return false;
       }
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      _error = _getFirebaseErrorMessage(e.code);
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -79,19 +107,28 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _authService.register(username, email, password);
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      if (result['success']) {
-        _currentUser = result['user'];
+      if (userCredential.user != null) {
+        await userCredential.user!.updateDisplayName(username);
+        _currentUser = _convertFirebaseUserToUser(userCredential.user!);
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = result['error'];
+        _error = 'Registration failed';
         _isLoading = false;
         notifyListeners();
         return false;
       }
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      _error = _getFirebaseErrorMessage(e.code);
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -101,30 +138,28 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _authService.logout();
-    _currentUser = null;
-    _error = null;
-    notifyListeners();
+    try {
+      await _firebaseAuth.signOut();
+      _currentUser = null;
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
   Future<bool> follow(String userId) async {
     if (_currentUser == null || userId == _currentUser!.id) return false;
 
-    final originalUser = _currentUser;
-    // Optimistic update
-    _currentUser = _currentUser!.copyWith(
-      followingCount: _currentUser!.followingCount + 1,
-    );
-    notifyListeners();
-
     try {
       await _authService.followUser(userId);
-      // NOTE: Here we could re-fetch the user or update from a successful response
-      // to ensure data consistency with the backend, but for now this is fine.
+      _currentUser = _currentUser!.copyWith(
+        followingCount: _currentUser!.followingCount + 1,
+      );
+      notifyListeners();
       return true;
     } catch (e) {
-      // Revert on error
-      _currentUser = originalUser;
       _error = e.toString();
       notifyListeners();
       return false;
@@ -134,34 +169,38 @@ class AuthViewModel extends ChangeNotifier {
   Future<bool> unfollow(String userId) async {
     if (_currentUser == null || userId == _currentUser!.id) return false;
 
-    final originalUser = _currentUser;
-    // Optimistic update
-    _currentUser = _currentUser!.copyWith(
-      followingCount: _currentUser!.followingCount > 0 ? _currentUser!.followingCount - 1 : 0,
-    );
-    notifyListeners();
-
     try {
       await _authService.unfollowUser(userId);
+      _currentUser = _currentUser!.copyWith(
+        followingCount: _currentUser!.followingCount > 0 ? _currentUser!.followingCount - 1 : 0,
+      );
+      notifyListeners();
       return true;
     } catch (e) {
-      // Revert on error
-      _currentUser = originalUser;
       _error = e.toString();
       notifyListeners();
       return false;
     }
   }
 
-  // Update profile
-  Future<bool> updateProfile(String displayName, String bio, {String? imagePath, String? city, String? country}) async {
+  Future<bool> updateProfile({
+    required String displayName,
+    required String bio,
+    String? imagePath,
+    String? city,
+    String? country,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final updatedUser = await _authService.updateProfile(displayName, bio, imagePath: imagePath, city: city, country: country);
-      _currentUser = updatedUser;
+      await _firebaseAuth.currentUser?.updateDisplayName(displayName);
+      
+      _currentUser = _convertFirebaseUserToUser(_firebaseAuth.currentUser!).copyWith(
+        bio: bio,
+      );
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -176,5 +215,23 @@ class AuthViewModel extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  // Helper para convertir errores de Firebase a mensajes en español
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'user-not-found':
+        return 'Usuario no encontrado';
+      case 'wrong-password':
+        return 'Contraseña incorrecta';
+      case 'email-already-in-use':
+        return 'El email ya está registrado';
+      case 'weak-password':
+        return 'La contraseña es muy débil';
+      case 'invalid-email':
+        return 'Email inválido';
+      default:
+        return 'Error de autenticación';
+    }
   }
 }

@@ -85,16 +85,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Future<void> _saveProfile() async {
+    Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     final success = await authViewModel.updateProfile(
-      _displayNameController.text.trim(),
-      _bioController.text.trim(),
-      imagePath: _imageFile?.path,
-      city: _cityController.text.trim(),
-      country: _countryController.text.trim(),
+      displayName: _displayNameController.text,
+      bio: _bioController.text,
+      city: _cityController.text,
+      country: _countryController.text,
     );
 
     if (success && mounted) {

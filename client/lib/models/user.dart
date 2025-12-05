@@ -17,8 +17,6 @@ class User {
   String? get fullProfileImageUrl {
     if (profileImageUrl == null) return null;
     if (profileImageUrl!.startsWith('http')) return profileImageUrl;
-    // Import ApiConstants to use serverUrl
-    // We need to import it at the top of the file, but for now assuming it's available or we add import
     return '${ApiConstants.serverUrl}$profileImageUrl';
   }
 

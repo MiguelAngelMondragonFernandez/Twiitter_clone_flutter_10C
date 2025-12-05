@@ -134,6 +134,31 @@ class ChirpCard extends StatelessWidget {
                             ),
                           ],
                         ),
+                        if (chirp.city != null || chirp.country != null) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  [chirp.city, chirp.country]
+                                      .where((e) => e != null)
+                                      .join(', '),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 4),
                         Text(chirp.content, style: const TextStyle(fontSize: 15)),
                         if (chirp.imageUrls.isNotEmpty) ...[
@@ -162,6 +187,7 @@ class ChirpCard extends StatelessWidget {
                             ),
                           ),
                         ],
+
                       ],
                     ),
                   ),

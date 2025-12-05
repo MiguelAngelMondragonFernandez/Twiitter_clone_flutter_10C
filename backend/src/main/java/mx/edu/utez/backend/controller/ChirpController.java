@@ -46,9 +46,20 @@ public class ChirpController {
     public ResponseEntity<ChirpDTO> createChirp(
             @RequestParam("content") String content,
             @RequestParam(value = "replyToId", required = false) Long replyToId,
+            @RequestParam(value = "latitude", required = false) Double latitude,
+            @RequestParam(value = "longitude", required = false) Double longitude,
+            @RequestParam(value = "city", required = false) String city,
+            @RequestParam(value = "country", required = false) String country,
             @RequestPart(value = "images", required = false) List<org.springframework.web.multipart.MultipartFile> images,
             @AuthenticationPrincipal User user) {
-        CreateChirpRequest request = new CreateChirpRequest(content, replyToId);
+        CreateChirpRequest request = new CreateChirpRequest();
+        request.setContent(content);
+        request.setReplyToId(replyToId);
+        request.setLatitude(latitude);
+        request.setLongitude(longitude);
+        request.setCity(city);
+        request.setCountry(country);
+
         ChirpDTO chirp = chirpService.createChirp(request, images, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(chirp);
     }

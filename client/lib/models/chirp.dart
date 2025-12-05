@@ -13,6 +13,10 @@ class Chirp {
   final String? replyToId;
   final User? repostedBy;
   final List<String> imageUrls;
+  final double? latitude;
+  final double? longitude;
+  final String? city;
+  final String? country;
 
   Chirp({
     required this.id,
@@ -27,6 +31,10 @@ class Chirp {
     this.replyToId,
     this.repostedBy,
     this.imageUrls = const [],
+    this.latitude,
+    this.longitude,
+    this.city,
+    this.country,
   });
 
   factory Chirp.fromJson(Map<String, dynamic> json) {
@@ -50,6 +58,10 @@ class Chirp {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
+      city: json['city'],
+      country: json['country'],
     );
   }
 
@@ -67,6 +79,10 @@ class Chirp {
       'replyToId': replyToId,
       'repostedBy': repostedBy?.toJson(),
       'imageUrls': imageUrls,
+      'latitude': latitude,
+      'longitude': longitude,
+      'city': city,
+      'country': country,
     };
   }
 
@@ -83,6 +99,10 @@ class Chirp {
     String? replyToId,
     User? repostedBy,
     List<String>? imageUrls,
+    double? latitude,
+    double? longitude,
+    String? city,
+    String? country,
   }) {
     return Chirp(
       id: id ?? this.id,
@@ -97,6 +117,10 @@ class Chirp {
       replyToId: replyToId ?? this.replyToId,
       repostedBy: repostedBy ?? this.repostedBy,
       imageUrls: imageUrls ?? this.imageUrls,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      city: city ?? this.city,
+      country: country ?? this.country,
     );
   }
 }

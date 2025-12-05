@@ -10,10 +10,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateChirpRequest {
-    
+
     @NotBlank(message = "El contenido no puede estar vacío")
     @Size(min = 1, max = 280, message = "El chirp debe tener entre 1 y 280 caracteres")
     private String content;
-    
+
     private Long replyToId;
+
+    // Optional geolocation fields
+    private Double latitude;
+    private Double longitude;
+    private String city;
+    private String country;
 }

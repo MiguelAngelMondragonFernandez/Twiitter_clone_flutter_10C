@@ -35,6 +35,10 @@ class ChirpService {
     String content, {
     String? replyToId,
     List<String>? imagePaths,
+    double? latitude,
+    double? longitude,
+    String? city,
+    String? country,
   }) async {
     try {
       final token = await _authService.getToken();
@@ -49,6 +53,20 @@ class ChirpService {
       request.fields['content'] = content;
       if (replyToId != null) {
         request.fields['replyToId'] = replyToId;
+      }
+      
+      // Add geolocation data if provided
+      if (latitude != null) {
+        request.fields['latitude'] = latitude.toString();
+      }
+      if (longitude != null) {
+        request.fields['longitude'] = longitude.toString();
+      }
+      if (city != null) {
+        request.fields['city'] = city;
+      }
+      if (country != null) {
+        request.fields['country'] = country;
       }
 
       if (imagePaths != null) {

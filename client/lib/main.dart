@@ -8,14 +8,17 @@ import 'viewmodels/notification_viewmodel.dart';
 import 'viewmodels/search_viewmodel.dart';
 import 'views/login_view.dart';
 import 'views/home_view.dart';
+import 'services/firebase_service.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 🔥 Inicializa Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Firebase
+  try {
+    await FirebaseService().initialize(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+  }
   
   runApp(const MyApp());
 }

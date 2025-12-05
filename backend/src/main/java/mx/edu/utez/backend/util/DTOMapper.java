@@ -54,6 +54,10 @@ public class DTOMapper {
         dto.setLiked(isLiked);
         dto.setReposted(isReposted);
         dto.setReplyToId(chirp.getReplyTo() != null ? chirp.getReplyTo().getId() : null);
+        dto.setLatitude(chirp.getLatitude());
+        dto.setLongitude(chirp.getLongitude());
+        dto.setCity(chirp.getCity());
+        dto.setCountry(chirp.getCountry());
         dto.setImageUrls(chirp.getImageUrls());
         return dto;
     }

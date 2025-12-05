@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../utils/api_constants.dart';
+import 'firebase_service.dart';
 
 class AuthService {
   static const String _tokenKey = 'auth_token';
@@ -21,6 +22,10 @@ class AuthService {
         final data = jsonDecode(response.body);
         await _saveToken(data['token']);
         await _saveUser(data['user']);
+        
+        // Register FCM token
+        await _registerFcmToken();
+        
         return {'success': true, 'user': User.fromJson(data['user'])};
       } else {
         final error = jsonDecode(response.body);
@@ -55,6 +60,10 @@ class AuthService {
         final data = jsonDecode(response.body);
         await _saveToken(data['token']);
         await _saveUser(data['user']);
+        
+        // Register FCM token
+        await _registerFcmToken();
+        
         return {'success': true, 'user': User.fromJson(data['user'])};
       } else {
         final error = jsonDecode(response.body);
@@ -98,40 +107,60 @@ class AuthService {
   }
 
   // Follow a user
-  Future<void> followUser(String userId) async {
+  Future<Map<String, dynamic>> followUser(String userId) async {
     try {
       final headers = await getAuthHeaders();
       final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.follow}/$userId'),
+        Uri.parse('${ApiConstants.baseUrl}/users/follow/$userId'),
         headers: headers,
       );
 
-      if (response.statusCode != 200) {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to follow user');
+      if (response.statusCode == 200) {
+        final userData = jsonDecode(response.body);
+        return {
+          'success': true,
+          'user': User.fromJson(userData),
+        };
+      } else {
+        // Try to extract error message from response
+        try {
+          final errorData = jsonDecode(response.body);
+          return {'success': false, 'error': errorData['message'] ?? 'Error al seguir usuario'};
+        } catch (e) {
+          return {'success': false, 'error': 'Error al seguir usuario (${response.statusCode})'};
+        }
       }
     } catch (e) {
-      // Re-throw the exception to be handled by the ViewModel
-      throw Exception('Error following user: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 
   // Unfollow a user
-  Future<void> unfollowUser(String userId) async {
+  Future<Map<String, dynamic>> unfollowUser(String userId) async {
     try {
       final headers = await getAuthHeaders();
       final response = await http.delete(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.unfollow}/$userId'),
+        Uri.parse('${ApiConstants.baseUrl}/users/unfollow/$userId'),
         headers: headers,
       );
 
-      if (response.statusCode != 200) {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to unfollow user');
+      if (response.statusCode == 200) {
+        final userData = jsonDecode(response.body);
+        return {
+          'success': true,
+          'user': User.fromJson(userData),
+        };
+      } else {
+        // Try to extract error message from response
+        try {
+          final errorData = jsonDecode(response.body);
+          return {'success': false, 'error': errorData['message'] ?? 'Error al dejar de seguir'};
+        } catch (e) {
+          return {'success': false, 'error': 'Error al dejar de seguir (${response.statusCode})'};
+        }
       }
     } catch (e) {
-      // Re-throw the exception to be handled by the ViewModel
-      throw Exception('Error unfollowing user: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -213,6 +242,62 @@ class AuthService {
     } catch (e) {
       print('Error fetching profile: $e');
       return null;
+    }
+  }
+  
+  // Get user by ID
+  Future<User?> getUserById(String userId) async {
+    try {
+      final headers = await getAuthHeaders();
+      final url = '${ApiConstants.baseUrl}/users/$userId';
+      
+      final response = await http.get(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return User.fromJson(data);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  // Register FCM token with backend
+  Future<void> _registerFcmToken() async {
+    try {
+      final firebaseService = FirebaseService();
+      final fcmToken = firebaseService.fcmToken;
+      
+      if (fcmToken == null) {
+        print('No FCM token available');
+        return;
+      }
+      
+      print('Registering FCM token: ${fcmToken.substring(0, 20)}...');
+      
+      final headers = await getAuthHeaders();
+      final url = '${ApiConstants.baseUrl}/notifications/register-token';
+      print('Sending token to: $url');
+      
+      final response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode({'fcmToken': fcmToken}),
+      );
+      
+      if (response.statusCode == 200) {
+        print('FCM token registered successfully');
+      } else {
+        print('Failed to register FCM token: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error registering FCM token: $e');
     }
   }
 }

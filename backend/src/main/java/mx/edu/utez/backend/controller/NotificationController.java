@@ -2,6 +2,7 @@ package mx.edu.utez.backend.controller;
 
 import mx.edu.utez.backend.dto.NotificationDTO;
 import mx.edu.utez.backend.model.User;
+import mx.edu.utez.backend.repository.UserRepository;
 import mx.edu.utez.backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -17,10 +18,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {
-    
+
     @Autowired
     private NotificationService notificationService;
-    
+
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping
     public ResponseEntity<List<NotificationDTO>> getNotifications(
             @RequestParam(defaultValue = "0") int page,
@@ -30,7 +34,7 @@ public class NotificationController {
         List<NotificationDTO> notifications = notificationService.getNotifications(user, pageable);
         return ResponseEntity.ok(notifications);
     }
-    
+
     @GetMapping("/unread-count")
     public ResponseEntity<Map<String, Long>> getUnreadCount(@AuthenticationPrincipal User user) {
         long count = notificationService.getUnreadCount(user);
@@ -38,37 +42,55 @@ public class NotificationController {
         response.put("count", count);
         return ResponseEntity.ok(response);
     }
-    
+
     @PutMapping("/read/{notificationId}")
     public ResponseEntity<Map<String, Object>> markAsRead(
             @PathVariable Long notificationId,
             @AuthenticationPrincipal User user) {
         notificationService.markAsRead(notificationId, user);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Notificación marcada como leída");
         response.put("isRead", true);
         return ResponseEntity.ok(response);
     }
-    
+
     @PutMapping("/read/all")
     public ResponseEntity<Map<String, Object>> markAllAsRead(@AuthenticationPrincipal User user) {
         int count = notificationService.markAllAsRead(user);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Todas las notificaciones marcadas como leídas");
         response.put("count", count);
         return ResponseEntity.ok(response);
     }
-    
+
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<Map<String, String>> deleteNotification(
             @PathVariable Long notificationId,
             @AuthenticationPrincipal User user) {
         notificationService.deleteNotification(notificationId, user);
-        
+
         Map<String, String> response = new HashMap<>();
         response.put("message", "Notificación eliminada");
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register-token")
+    public ResponseEntity<Map<String, String>> registerFcmToken(
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal User user) {
+        String fcmToken = request.get("fcmToken");
+
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            user.setFcmToken(fcmToken);
+            userRepository.save(user);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "FCM token registrado exitosamente");
+            return ResponseEntity.ok(response);
+        }
+
+        return ResponseEntity.badRequest().body(Map.of("error", "Token inválido"));
     }
 }

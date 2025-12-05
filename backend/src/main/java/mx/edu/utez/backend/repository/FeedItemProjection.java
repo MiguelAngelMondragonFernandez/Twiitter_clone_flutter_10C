@@ -16,6 +16,15 @@ public interface FeedItemProjection {
 
     Integer getRepostsCount();
 
+    // Geolocation details
+    Double getLatitude();
+
+    Double getLongitude();
+
+    String getCity();
+
+    String getCountry();
+
     // Author details
     Long getAuthorId();
 

@@ -1,0 +1,5 @@
+# Firebase credentials - Backend
+backend/src/main/resources/firebase-service-account.json
+
+# Firebase credentials - Client
+client/android/app/google-services.json

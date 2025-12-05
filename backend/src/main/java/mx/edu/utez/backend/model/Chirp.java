@@ -75,6 +75,18 @@ public class Chirp {
     @JsonIgnore
     private List<Notification> notifications = new ArrayList<>();
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "city", length = 100)
+    private String city;
+
+    @Column(name = "country", length = 100)
+    private String country;
+
     @ElementCollection
     @CollectionTable(name = "chirp_images", joinColumns = @JoinColumn(name = "chirp_id"))
     @Column(name = "image_url")

@@ -4,6 +4,7 @@ import '../models/user.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/chirp_viewmodel.dart';
 import '../widgets/chirp_card.dart';
+import '../services/auth_service.dart';
 import 'edit_profile_view.dart';
 
 class ProfileView extends StatefulWidget {
@@ -32,44 +33,79 @@ class _ProfileViewState extends State<ProfileView> {
     // Initialize the local user state
     _profileUser = widget.user ?? authViewModel.currentUser!;
     
-    // Fetch user's chirps
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final chirpViewModel = Provider.of<ChirpViewModel>(context, listen: false);
-      chirpViewModel.loadUserChirps(_profileUser.id);
+    // Fetch fresh user data from backend
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _refreshUserData();
+      
+      // Fetch user's chirps
+      if (mounted) {
+        final chirpViewModel = Provider.of<ChirpViewModel>(context, listen: false);
+        chirpViewModel.loadUserChirps(_profileUser.id);
+      }
     });
   }
 
+  Future<void> _refreshUserData() async {
+    final authService = AuthService();
+    User? updatedUser;
+    
+    if (_isCurrentUserProfile) {
+      // For current user, fetch from profile endpoint
+      updatedUser = await authService.fetchUserProfile();
+    } else {
+      // For other users, fetch by ID
+      updatedUser = await authService.getUserById(_profileUser.id);
+    }
+    
+    if (updatedUser != null && mounted) {
+      setState(() {
+        _profileUser = updatedUser!;
+      });
+    }
+  }
+
+  bool _isFollowLoading = false;
+
   Future<void> _toggleFollow() async {
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    if (_isFollowLoading) return; // Prevent multiple simultaneous calls
+    
+    final authService = AuthService();
     final currentFollowState = _profileUser.isFollowing;
     
-    // Call the appropriate viewmodel method
-    final success = currentFollowState
-        ? await authViewModel.unfollow(_profileUser.id)
-        : await authViewModel.follow(_profileUser.id);
-
-    // If the API call was successful, update the local state to rebuild the UI
-    if (success) {
+    // Show loading state
+    setState(() {
+      _isFollowLoading = true;
+      _profileUser = _profileUser.copyWith(isFollowing: !currentFollowState);
+    });
+    
+    // Call the appropriate service method
+    final result = currentFollowState
+        ? await authService.unfollowUser(_profileUser.id)
+        : await authService.followUser(_profileUser.id);
+    
+    // Use the updated user from the response
+    if (result['success'] == true && result['user'] != null) {
       setState(() {
-        _profileUser = _profileUser.copyWith(
-          isFollowing: !currentFollowState,
-          followersCount: currentFollowState
-              ? _profileUser.followersCount - 1
-              : _profileUser.followersCount + 1,
-        );
+        _profileUser = result['user'];
+        _isFollowLoading = false;
       });
       
       // Also, refresh the main feed so the changes are reflected there
       if (mounted) {
         Provider.of<ChirpViewModel>(context, listen: false).loadFeed(refresh: true);
       }
-
     } else {
-      // Optional: Show a snackbar on failure
+      // Revert on failure
+      setState(() {
+        _profileUser = _profileUser.copyWith(isFollowing: currentFollowState);
+        _isFollowLoading = false;
+      });
+      
+      // Show error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authViewModel.error ?? 'Ocurrió un error'),
+            content: Text(result['error'] ?? 'Ocurrió un error'),
             backgroundColor: Colors.red,
           ),
         );

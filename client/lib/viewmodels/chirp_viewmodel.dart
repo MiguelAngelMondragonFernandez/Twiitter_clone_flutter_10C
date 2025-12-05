@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/chirp.dart';
 import '../services/chirp_service.dart';
+import '../services/location_service.dart';
 
 class ChirpViewModel extends ChangeNotifier {
   final ChirpService _chirpService = ChirpService();
+  final LocationService _locationService = LocationService();
 
   // State for Home Feed
   List<Chirp> _feedChirps = [];
@@ -69,10 +71,17 @@ class ChirpViewModel extends ChangeNotifier {
     notifyListeners();
     
     try {
+      // Get current location
+      Map<String, dynamic>? locationData = await _locationService.getCurrentLocation();
+      
       final newChirp = await _chirpService.createChirp(
         content,
         replyToId: replyToId,
         imagePaths: imagePaths,
+        latitude: locationData?['latitude'],
+        longitude: locationData?['longitude'],
+        city: locationData?['city'],
+        country: locationData?['country'],
       );
       _feedChirps.insert(0, newChirp);
       notifyListeners();

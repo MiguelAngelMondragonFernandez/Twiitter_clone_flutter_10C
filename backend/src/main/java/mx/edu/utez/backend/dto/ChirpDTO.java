@@ -21,5 +21,9 @@ public class ChirpDTO {
     private boolean reposted;
     private Long replyToId;
     private AuthorDTO repostedBy;
+    private Double latitude;
+    private Double longitude;
+    private String city;
+    private String country;
     private java.util.List<String> imageUrls;
 }

@@ -5,18 +5,7 @@ class ApiConstants {
   // Cambia esta URL según tu backend
   // Para Android Emulator usa 10.0.2.2, para iOS/Web/Desktop usa localhost
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:8081/api';
-    }
-    try {
-      if (Platform.isAndroid) {
-        return 'http://10.0.2.2:8081/api';
-      }
-    } catch (e) {
-      // Platform check failed (e.g. on web if kIsWeb check was missed or other issues)
-      return 'http://localhost:8081/api';
-    }
-    return 'http://localhost:8081/api';
+    return 'https://spring-app-596149976982.us-central1.run.app/api';
   }
 
   static String get serverUrl {

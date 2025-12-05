@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../utils/api_constants.dart';
 import 'firebase_service.dart';
@@ -270,6 +272,12 @@ class AuthService {
   // Register FCM token with backend
   Future<void> _registerFcmToken() async {
     try {
+      // Skip on Linux/Desktop where Firebase Messaging might not be supported
+      if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+        print('FCM registration skipped on desktop');
+        return;
+      }
+
       final firebaseService = FirebaseService();
       final fcmToken = firebaseService.fcmToken;
       

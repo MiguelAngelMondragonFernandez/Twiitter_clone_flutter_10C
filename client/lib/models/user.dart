@@ -17,7 +17,17 @@ class User {
   String? get fullProfileImageUrl {
     if (profileImageUrl == null) return null;
     if (profileImageUrl!.startsWith('http')) return profileImageUrl;
-    return '${ApiConstants.serverUrl}$profileImageUrl';
+    
+    final baseUrl = ApiConstants.serverUrl;
+    final path = profileImageUrl!;
+    
+    if (!baseUrl.endsWith('/') && !path.startsWith('/')) {
+      return '$baseUrl/$path';
+    }
+    if (baseUrl.endsWith('/') && path.startsWith('/')) {
+      return '$baseUrl${path.substring(1)}';
+    }
+    return '$baseUrl$path';
   }
 
   User({

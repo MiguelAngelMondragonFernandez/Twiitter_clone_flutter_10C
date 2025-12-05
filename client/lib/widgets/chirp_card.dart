@@ -169,9 +169,7 @@ class ChirpCard extends StatelessWidget {
                               scrollDirection: Axis.horizontal,
                               itemCount: chirp.imageUrls.length,
                               itemBuilder: (context, index) {
-                                final imageUrl = chirp.imageUrls[index].startsWith('http')
-                                    ? chirp.imageUrls[index]
-                                    : '${ApiConstants.serverUrl}${chirp.imageUrls[index]}';
+                                final imageUrl = chirp.fullImageUrls[index];
                                 return Container(
                                   margin: const EdgeInsets.only(right: 8),
                                   width: 200,

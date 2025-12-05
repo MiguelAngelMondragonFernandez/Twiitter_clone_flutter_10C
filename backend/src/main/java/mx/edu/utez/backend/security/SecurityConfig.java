@@ -56,9 +56,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers(
-                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/uploads/**"));
-    }
+    // @Bean
+    // public
+    // org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
+    // webSecurityCustomizer() {
+    // return (web) -> web.ignoring().requestMatchers(
+    // new
+    // org.springframework.security.web.util.matcher.AntPathRequestMatcher("/uploads/**"));
+    // }
 }

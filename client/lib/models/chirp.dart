@@ -1,4 +1,5 @@
 import 'user.dart';
+import '../utils/api_constants.dart';
 
 class Chirp {
   final String id;
@@ -17,6 +18,22 @@ class Chirp {
   final double? longitude;
   final String? city;
   final String? country;
+
+  List<String> get fullImageUrls {
+    return imageUrls.map((url) {
+      if (url.startsWith('http')) return url;
+      
+      final baseUrl = ApiConstants.serverUrl;
+      
+      if (!baseUrl.endsWith('/') && !url.startsWith('/')) {
+        return '$baseUrl/$url';
+      }
+      if (baseUrl.endsWith('/') && url.startsWith('/')) {
+        return '$baseUrl${url.substring(1)}';
+      }
+      return '$baseUrl$url';
+    }).toList();
+  }
 
   Chirp({
     required this.id,

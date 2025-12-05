@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/chirp_viewmodel.dart';
 import 'viewmodels/notification_viewmodel.dart';
@@ -11,7 +13,6 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   // Initialize Firebase
   try {
     await FirebaseService().initialize(options: DefaultFirebaseOptions.currentPlatform);

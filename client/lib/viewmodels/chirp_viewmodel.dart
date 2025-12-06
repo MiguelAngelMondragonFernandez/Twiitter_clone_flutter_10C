@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/chirp.dart';
+import '../models/user.dart';
 import '../services/chirp_service.dart';
 import '../services/location_service.dart';
 
@@ -217,6 +218,31 @@ class ChirpViewModel extends ChangeNotifier {
 
     _isUserProfileLoading = false;
     notifyListeners();
+  }
+
+  // Update user details in all chirps
+  void updateChirpUser(User updatedUser) {
+    bool changed = false;
+
+    // Update in feed
+    for (var i = 0; i < _feedChirps.length; i++) {
+      if (_feedChirps[i].author.id == updatedUser.id) {
+        _feedChirps[i] = _feedChirps[i].copyWith(author: updatedUser);
+        changed = true;
+      }
+    }
+
+    // Update in profile list
+    for (var i = 0; i < _userProfileChirps.length; i++) {
+      if (_userProfileChirps[i].author.id == updatedUser.id) {
+        _userProfileChirps[i] = _userProfileChirps[i].copyWith(author: updatedUser);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   void clearError() {

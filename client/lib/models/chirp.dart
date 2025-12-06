@@ -43,8 +43,9 @@ class Chirp {
       content: json['content'] ?? '',
       author: User.fromJson(json['author'] ?? {}),
       createdAt: DateTime.parse(
-        json['createdAt'] ?? DateTime.now().toIso8601String(),
-      ),
+        (json['createdAt']?.toString() ?? DateTime.now().toIso8601String()) +
+            (json['createdAt']?.toString().endsWith('Z') == true ? '' : 'Z'),
+      ).toLocal(),
       likesCount: json['likesCount'] ?? 0,
       repliesCount: json['repliesCount'] ?? 0,
       repostsCount: json['repostsCount'] ?? 0,

@@ -148,6 +148,49 @@ class _LoginViewState extends State<LoginView> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Google Sign In
+                  Consumer<AuthViewModel>(
+                    builder: (context, authViewModel, child) {
+                      return OutlinedButton(
+                        onPressed: authViewModel.isLoading ? null : () async {
+                          final success = await authViewModel.loginWithGoogle();
+                          if (success && context.mounted) {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder: (_) => const HomeView()),
+                            );
+                          } else if (context.mounted && authViewModel.error != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(authViewModel.error!)),
+                            );
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text(
+                              'Continuar con Google',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
                   // Register link
                   Row(

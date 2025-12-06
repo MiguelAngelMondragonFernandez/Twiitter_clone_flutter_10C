@@ -54,6 +54,9 @@ class AuthViewModel extends ChangeNotifier {
         _currentUser = await _authService.fetchUserProfile();
         
         _currentUser ??= await _authService.getStoredUser();
+
+        // Register FCM token for auto-login
+        await _authService.registerFcmToken();
       } else {
         _currentUser = null;
       }
@@ -81,6 +84,33 @@ class AuthViewModel extends ChangeNotifier {
         return true;
       } else {
         _error = result['error'] ?? 'Error al iniciar sesión';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Error de conexión: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> loginWithGoogle() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _authService.loginWithGoogle();
+
+      if (result['success'] == true) {
+        _currentUser = result['user'] as User;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['error'] ?? 'Error al iniciar sesión con Google';
         _isLoading = false;
         notifyListeners();
         return false;

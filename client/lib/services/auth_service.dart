@@ -5,9 +5,13 @@ import '../models/user.dart';
 import '../utils/api_constants.dart';
 import 'firebase_service.dart';
 
+import 'package:google_sign_in/google_sign_in.dart';
+
 class AuthService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
+  
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Login
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -24,7 +28,7 @@ class AuthService {
         await _saveUser(data['user']);
         
         // Register FCM token
-        await _registerFcmToken();
+        await registerFcmToken();
         
         return {'success': true, 'user': User.fromJson(data['user'])};
       } else {
@@ -33,6 +37,55 @@ class AuthService {
           'success': false,
           'error': error['message'] ?? 'Error al iniciar sesión',
         };
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Error de conexión: $e'};
+    }
+  }
+
+  // Google Login
+  Future<Map<String, dynamic>> loginWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        return {'success': false, 'error': 'Inicio de sesión cancelado'};
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        return {'success': false, 'error': 'No se pudo obtener el token de Google'};
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/auth/google'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'idToken': idToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _saveToken(data['token']);
+        await _saveUser(data['user']);
+        
+        // Register FCM token
+        await registerFcmToken();
+        
+        return {'success': true, 'user': User.fromJson(data['user'])};
+      } else {
+        try {
+          final error = jsonDecode(response.body);
+          return {
+            'success': false,
+            'error': error['message'] ?? 'Error al iniciar sesión con Google',
+          };
+        } catch (e) {
+           return {
+            'success': false,
+            'error': 'Error al iniciar sesión con Google (${response.statusCode})',
+          };
+        }
       }
     } catch (e) {
       return {'success': false, 'error': 'Error de conexión: $e'};
@@ -62,7 +115,7 @@ class AuthService {
         await _saveUser(data['user']);
         
         // Register FCM token
-        await _registerFcmToken();
+        await registerFcmToken();
         
         return {'success': true, 'user': User.fromJson(data['user'])};
       } else {
@@ -268,7 +321,7 @@ class AuthService {
   }
   
   // Register FCM token with backend
-  Future<void> _registerFcmToken() async {
+  Future<void> registerFcmToken() async {
     try {
       final firebaseService = FirebaseService();
       final fcmToken = firebaseService.fcmToken;

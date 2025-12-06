@@ -47,6 +47,22 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+
+    final success = await authViewModel.loginWithGoogle();
+
+    if (success && mounted) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeView()));
+    } else if (mounted && authViewModel.error != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(authViewModel.error!)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +160,32 @@ class _LoginViewState extends State<LoginView> {
                         text: 'Iniciar Sesión',
                         onPressed: _handleLogin,
                         isLoading: authViewModel.isLoading,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  const SizedBox(height: 16),
+
+                  // Google Sign-In Button
+                  Consumer<AuthViewModel>(
+                    builder: (context, authViewModel, child) {
+                      return OutlinedButton.icon(
+                        onPressed: authViewModel.isLoading ? null : _handleGoogleLogin,
+                        icon: Image.network(
+                          'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
+                          height: 24,
+                          width: 24,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.login),
+                        ),
+                        label: const Text('Iniciar sesión con Google'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
                       );
                     },
                   ),

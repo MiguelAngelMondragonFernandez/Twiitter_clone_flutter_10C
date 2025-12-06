@@ -41,58 +41,59 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // --- WEB (del Código 2) ---
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDiY3srMuLifiIF38W1jUJmLVZd-Y1axw4',
-    appId: '1:227683941568:web:143cd899a7c34549d20125',
-    messagingSenderId: '227683941568',
-    projectId: 'twitterclone-5dd8f',
-    authDomain: 'twitterclone-5dd8f.firebaseapp.com',
-    storageBucket: 'twitterclone-5dd8f.firebasestorage.app',
+    apiKey: 'AIzaSyCZgu1E_xrpOIaaSPExLzehHb9PwL1nNhA',
+    appId: '1:485188841768:web:1e59236f348f4fe74fa01d',
+    messagingSenderId: '485188841768',
+    projectId: 'authfluttertwitterclone',
+    authDomain: 'authfluttertwitterclone.firebaseapp.com',
+    storageBucket: 'authfluttertwitterclone.firebasestorage.app',
+  );
+
+  // --- WEB (del Código 2) ---
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDfOa4bNCKYFl8o0UQzUeYWhcHz2Lnyktc',
+    appId: '1:485188841768:android:32ec74912464199d4fa01d',
+    messagingSenderId: '485188841768',
+    projectId: 'authfluttertwitterclone',
+    storageBucket: 'authfluttertwitterclone.firebasestorage.app',
   );
 
   // --- ANDROID (usa el de Código 2, NO el de Código 1 para evitar conflictos) ---
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBYHlQ4w33Xsf3SuAeGc_3NfdqAwG0M4rA',
-    appId: '1:227683941568:android:2ac6c66082cc4be7d20125',
-    messagingSenderId: '227683941568',
-    projectId: 'twitterclone-5dd8f',
-    storageBucket: 'twitterclone-5dd8f.firebasestorage.app',
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyA4qs3elTDC9ftmzfkcvA5AZB1KkPXo8PE',
+    appId: '1:485188841768:ios:da4780eb2e232c9f4fa01d',
+    messagingSenderId: '485188841768',
+    projectId: 'authfluttertwitterclone',
+    storageBucket: 'authfluttertwitterclone.firebasestorage.app',
+    iosClientId: '485188841768-sdckn2j46ia2po740ua55bjh28nint63.apps.googleusercontent.com',
+    iosBundleId: 'com.example.client',
   );
 
   // --- IOS ---
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD7FKiHcFGaW_sGkHAx00X7eurJbt1YbEk',
-    appId: '1:227683941568:ios:6daf38d653c0e7acd20125',
-    messagingSenderId: '227683941568',
-    projectId: 'twitterclone-5dd8f',
-    storageBucket: 'twitterclone-5dd8f.firebasestorage.app',
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyA4qs3elTDC9ftmzfkcvA5AZB1KkPXo8PE',
+    appId: '1:485188841768:ios:da4780eb2e232c9f4fa01d',
+    messagingSenderId: '485188841768',
+    projectId: 'authfluttertwitterclone',
+    storageBucket: 'authfluttertwitterclone.firebasestorage.app',
+    iosClientId: '485188841768-sdckn2j46ia2po740ua55bjh28nint63.apps.googleusercontent.com',
     iosBundleId: 'com.example.client',
   );
 
   // --- MACOS ---
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyD7FKiHcFGaW_sGkHAx00X7eurJbt1YbEk',
-    appId: '1:227683941568:ios:6daf38d653c0e7acd20125',
-    messagingSenderId: '227683941568',
-    projectId: 'twitterclone-5dd8f',
-    storageBucket: 'twitterclone-5dd8f.firebasestorage.app',
-    iosBundleId: 'com.example.client',
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCZgu1E_xrpOIaaSPExLzehHb9PwL1nNhA',
+    appId: '1:485188841768:web:99eba506d038005f4fa01d',
+    messagingSenderId: '485188841768',
+    projectId: 'authfluttertwitterclone',
+    authDomain: 'authfluttertwitterclone.firebaseapp.com',
+    storageBucket: 'authfluttertwitterclone.firebasestorage.app',
   );
 
   // --- WINDOWS ---
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDiY3srMuLifiIF38W1jUJmLVZd-Y1axw4',
-    appId: '1:227683941568:web:64723fab9ec0baced20125',
-    messagingSenderId: '227683941568',
-    projectId: 'twitterclone-5dd8f',
-    authDomain: 'twitterclone-5dd8f.firebaseapp.com',
-    storageBucket: 'twitterclone-5dd8f.firebasestorage.app',
-  );
 }
-
-
-
-
-
-

@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
 import '../utils/api_constants.dart';
 import 'firebase_service.dart';
@@ -74,6 +78,78 @@ class AuthService {
       }
     } catch (e) {
       return {'success': false, 'error': 'Error de conexión: $e'};
+    }
+  }
+
+  // Google Sign-In
+  Future<Map<String, dynamic>> signInWithGoogle() async {
+    // Check for unsupported platforms (Linux/Windows)
+    if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
+      return {
+        'success': false, 
+        'error': 'Google Sign-In no está soportado en Linux/Windows. Por favor ejecuta la app en Android, iOS o Web.'
+      };
+    }
+
+    try {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        return {'success': false, 'error': 'Inicio de sesión cancelado'};
+      }
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Create a new credential
+      final firebase_auth.AuthCredential credential = firebase_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Once signed in, return the UserCredential
+      final firebase_auth.UserCredential userCredential = 
+          await firebase_auth.FirebaseAuth.instance.signInWithCredential(credential);
+      
+      final user = userCredential.user;
+      
+      if (user != null) {
+        // Get the ID token
+        final String? idToken = await user.getIdToken();
+        
+        print('Google Sign-In Successful');
+        print('User: ${user.displayName}');
+        print('Email: ${user.email}');
+        print('Firebase ID Token: ${idToken?.substring(0, 20)}...');
+
+        // TODO: Send this token to your backend to verify and create a session
+        // For now, we will create a local User object to proceed
+        
+        final localUser = {
+          'id': user.uid, // Temporary ID
+          'username': user.displayName ?? 'User',
+          'email': user.email ?? '',
+          'profileImageUrl': user.photoURL,
+          'bio': 'Google User',
+          'followers': [],
+          'following': [],
+        };
+        
+        await _saveToken(idToken ?? 'google-token-placeholder');
+        await _saveUser(localUser);
+        
+        // Register FCM token
+        await _registerFcmToken();
+
+        return {'success': true, 'user': User.fromJson(localUser)};
+      } else {
+        return {'success': false, 'error': 'Error al obtener usuario de Google'};
+      }
+    } catch (e) {
+      print('Error in signInWithGoogle: $e');
+      return {'success': false, 'error': 'Error de inicio de sesión con Google: $e'};
     }
   }
 

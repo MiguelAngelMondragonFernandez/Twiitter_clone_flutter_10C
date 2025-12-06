@@ -66,6 +66,33 @@ class AuthViewModel extends ChangeNotifier {
     Future.microtask(() => notifyListeners());
   }
 
+  Future<bool> loginWithGoogle() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _authService.signInWithGoogle();
+
+      if (result['success'] == true) {
+        _currentUser = result['user'] as User;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['error'] ?? 'Error al iniciar sesión con Google';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Error de conexión: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;

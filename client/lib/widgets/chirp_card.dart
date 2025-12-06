@@ -6,6 +6,7 @@ import '../viewmodels/chirp_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../views/create_chirp_view.dart';
 import '../views/chirp_detail_view.dart';
+import '../views/image_viewer_view.dart';
 import '../utils/api_constants.dart';
 
 class ChirpCard extends StatelessWidget {
@@ -172,14 +173,24 @@ class ChirpCard extends StatelessWidget {
                                 final imageUrl = chirp.imageUrls[index].startsWith('http')
                                     ? chirp.imageUrls[index]
                                     : '${ApiConstants.serverUrl}${chirp.imageUrls[index]}';
-                                return Container(
-                                  margin: const EdgeInsets.only(right: 8),
-                                  width: 200,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: DecorationImage(
-                                      image: NetworkImage(imageUrl),
-                                      fit: BoxFit.cover,
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ImageViewerView(imageUrl: imageUrl),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 8),
+                                    width: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      image: DecorationImage(
+                                        image: NetworkImage(imageUrl),
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                 );

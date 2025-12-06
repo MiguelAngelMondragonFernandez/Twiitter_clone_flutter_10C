@@ -143,10 +143,10 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ).then((_) {
                     // Refresh profile when returning from edit
-                    setState(() {
-                      // Trigger a rebuild or re-fetch if needed
-                      // For now, the viewmodel might be updated via notifyListeners
-                    });
+                    _refreshUserData();
+                    if (mounted) {
+                      Provider.of<ChirpViewModel>(context, listen: false).loadUserChirps(_profileUser.id);
+                    }
                   });
                 },
                 child: const Text('Editar perfil'),

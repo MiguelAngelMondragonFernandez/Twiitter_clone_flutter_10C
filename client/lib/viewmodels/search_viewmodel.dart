@@ -105,6 +105,31 @@ class SearchViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Update user details in search results
+  void updateUser(User updatedUser) {
+    bool changed = false;
+
+    // Update in users list
+    for (var i = 0; i < _users.length; i++) {
+      if (_users[i].id == updatedUser.id) {
+        _users[i] = updatedUser;
+        changed = true;
+      }
+    }
+
+    // Update in chirps list
+    for (var i = 0; i < _chirps.length; i++) {
+      if (_chirps[i].author.id == updatedUser.id) {
+        _chirps[i] = _chirps[i].copyWith(author: updatedUser);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      notifyListeners();
+    }
+  }
+
   // Clear search
   void clearSearch() {
     _users = [];

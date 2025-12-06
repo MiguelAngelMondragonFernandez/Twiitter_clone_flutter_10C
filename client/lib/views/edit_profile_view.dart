@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/chirp_viewmodel.dart';
+import '../viewmodels/search_viewmodel.dart';
 
 class EditProfileView extends StatefulWidget {
   final User user;
@@ -94,6 +96,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       bio: _bioController.text,
       city: _cityController.text,
       country: _countryController.text,
+      imagePath: _imageFile?.path,
     );
 
     if (success && mounted) {
@@ -101,6 +104,18 @@ class _EditProfileViewState extends State<EditProfileView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Perfil actualizado correctamente')),
       );
+
+      // Update user in other viewmodels
+      if (authViewModel.currentUser != null) {
+        Provider.of<ChirpViewModel>(
+          context,
+          listen: false,
+        ).updateChirpUser(authViewModel.currentUser!);
+        Provider.of<SearchViewModel>(
+          context,
+          listen: false,
+        ).updateUser(authViewModel.currentUser!);
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

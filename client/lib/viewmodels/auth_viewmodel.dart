@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../models/user.dart';
 import '../services/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
-  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
 
   User? _currentUser;
   bool _isLoading = false;
@@ -17,33 +15,32 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
 
   AuthViewModel() {
-    _initAuthStateListener();
+    _initAuthState();
   }
 
-  // 🔥 Escucha cambios en Firebase Auth
-  void _initAuthStateListener() {
-    _firebaseAuth.authStateChanges().listen((firebaseUser) {
-      if (firebaseUser != null) {
-        _currentUser = _convertFirebaseUserToUser(firebaseUser);
-      } else {
-        _currentUser = null;
+  // Initialize auth state from stored data
+  Future<void> _initAuthState() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Check if user is logged in by checking stored token
+      final isLoggedIn = await _authService.isLoggedIn();
+      
+      if (isLoggedIn) {
+        // Try to fetch user profile from backend
+        _currentUser = await _authService.fetchUserProfile();
+        
+        // If fetch fails (e.g., token expired), get stored user
+        _currentUser ??= await _authService.getStoredUser();
       }
-      notifyListeners();
-    });
-  }
+    } catch (e) {
+      _error = e.toString();
+      _currentUser = null;
+    }
 
-  // Convierte FirebaseUser a tu modelo User
-  User _convertFirebaseUserToUser(firebase_auth.User firebaseUser) {
-    return User(
-      id: firebaseUser.uid,
-      username: firebaseUser.displayName ?? 'Usuario',
-      email: firebaseUser.email ?? '',
-      bio: '',
-      profileImageUrl: firebaseUser.photoURL,
-      followersCount: 0,
-      followingCount: 0,
-      createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
-    );
+    _isLoading = false;
+    notifyListeners();
   }
 
   Future<void> checkAuthStatus() async {
@@ -51,9 +48,12 @@ class AuthViewModel extends ChangeNotifier {
     Future.microtask(() => notifyListeners());
 
     try {
-      final firebaseUser = _firebaseAuth.currentUser;
-      if (firebaseUser != null) {
-        _currentUser = _convertFirebaseUserToUser(firebaseUser);
+      final isLoggedIn = await _authService.isLoggedIn();
+      
+      if (isLoggedIn) {
+        _currentUser = await _authService.fetchUserProfile();
+        
+        _currentUser ??= await _authService.getStoredUser();
       } else {
         _currentUser = null;
       }
@@ -72,29 +72,21 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final result = await _authService.login(email, password);
 
-      if (userCredential.user != null) {
-        _currentUser = _convertFirebaseUserToUser(userCredential.user!);
+      if (result['success'] == true) {
+        _currentUser = result['user'] as User;
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = 'Login failed';
+        _error = result['error'] ?? 'Error al iniciar sesión';
         _isLoading = false;
         notifyListeners();
         return false;
       }
-    } on firebase_auth.FirebaseAuthException catch (e) {
-      _error = _getFirebaseErrorMessage(e.code);
-      _isLoading = false;
-      notifyListeners();
-      return false;
     } catch (e) {
-      _error = e.toString();
+      _error = 'Error de conexión: $e';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -107,30 +99,21 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final result = await _authService.register(username, email, password);
 
-      if (userCredential.user != null) {
-        await userCredential.user!.updateDisplayName(username);
-        _currentUser = _convertFirebaseUserToUser(userCredential.user!);
+      if (result['success'] == true) {
+        _currentUser = result['user'] as User;
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = 'Registration failed';
+        _error = result['error'] ?? 'Error al registrarse';
         _isLoading = false;
         notifyListeners();
         return false;
       }
-    } on firebase_auth.FirebaseAuthException catch (e) {
-      _error = _getFirebaseErrorMessage(e.code);
-      _isLoading = false;
-      notifyListeners();
-      return false;
     } catch (e) {
-      _error = e.toString();
+      _error = 'Error de conexión: $e';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -139,7 +122,7 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
-      await _firebaseAuth.signOut();
+      await _authService.logout();
       _currentUser = null;
       _error = null;
       notifyListeners();
@@ -153,12 +136,17 @@ class AuthViewModel extends ChangeNotifier {
     if (_currentUser == null || userId == _currentUser!.id) return false;
 
     try {
-      await _authService.followUser(userId);
-      _currentUser = _currentUser!.copyWith(
-        followingCount: _currentUser!.followingCount + 1,
-      );
-      notifyListeners();
-      return true;
+      final result = await _authService.followUser(userId);
+      
+      if (result['success'] == true) {
+        _currentUser = result['user'] as User;
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['error'];
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -170,12 +158,17 @@ class AuthViewModel extends ChangeNotifier {
     if (_currentUser == null || userId == _currentUser!.id) return false;
 
     try {
-      await _authService.unfollowUser(userId);
-      _currentUser = _currentUser!.copyWith(
-        followingCount: _currentUser!.followingCount > 0 ? _currentUser!.followingCount - 1 : 0,
-      );
-      notifyListeners();
-      return true;
+      final result = await _authService.unfollowUser(userId);
+      
+      if (result['success'] == true) {
+        _currentUser = result['user'] as User;
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['error'];
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -195,12 +188,15 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _firebaseAuth.currentUser?.updateDisplayName(displayName);
-      
-      _currentUser = _convertFirebaseUserToUser(_firebaseAuth.currentUser!).copyWith(
-        bio: bio,
+      final updatedUser = await _authService.updateProfile(
+        displayName,
+        bio,
+        imagePath: imagePath,
+        city: city,
+        country: country,
       );
       
+      _currentUser = updatedUser;
       _isLoading = false;
       notifyListeners();
       return true;
@@ -215,23 +211,5 @@ class AuthViewModel extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
-  }
-
-  // Helper para convertir errores de Firebase a mensajes en español
-  String _getFirebaseErrorMessage(String code) {
-    switch (code) {
-      case 'user-not-found':
-        return 'Usuario no encontrado';
-      case 'wrong-password':
-        return 'Contraseña incorrecta';
-      case 'email-already-in-use':
-        return 'El email ya está registrado';
-      case 'weak-password':
-        return 'La contraseña es muy débil';
-      case 'invalid-email':
-        return 'Email inválido';
-      default:
-        return 'Error de autenticación';
-    }
   }
 }

@@ -53,6 +53,9 @@ public class UserService {
     @Autowired
     private DTOMapper dtoMapper;
 
+    @org.springframework.beans.factory.annotation.Value("${file.upload-dir}")
+    private String uploadDir;
+
     @Transactional(readOnly = true)
     public UserDTO getProfile(User currentUser) {
         return dtoMapper.toUserDTO(currentUser);
@@ -188,8 +191,7 @@ public class UserService {
         if (image != null && !image.isEmpty()) {
             try {
                 String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-                String userDir = System.getProperty("user.dir");
-                Path uploadPath = Paths.get(userDir, "uploads");
+                Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
 
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
